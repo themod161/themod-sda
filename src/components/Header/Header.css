@@ -1,0 +1,41 @@
+.header-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.header-left-side {
+    display: flex;
+    align-items: stretch;
+}
+.header-buttons-wrapper {
+    display: flex;
+    justify-content: space-between;
+}
+.header-app-name {
+    margin: 0 7px;
+}
+.header-buttons {
+    display: flex;
+}
+.header-inner {
+    padding: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.header-button {
+    margin: 0 5px 0 5px;
+    transition: all .3s ease-in;
+}
+.header-buttons-wrapper {
+    margin: 0 2px 0 2px;
+    transition: all .3s ease-in;
+    border-radius: 5px;
+}
+.header-buttons-wrapper:hover {
+    border-radius: 5px;
+    background-color:cadetblue;
+}
+.header-buttons-wrapper.close:hover {
+    background-color: brown;
+}

@@ -1,0 +1,30 @@
+html {
+  overflow: hidden;
+}
+
+.nDragble {
+  -webkit-user-select: text;
+  -webkit-app-region: no-drag;
+}
+.nSelected {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.App {
+  border-radius: 1%;
+  background: rgba(40, 44, 52, 0.92);
+  min-height: 100vh;
+  flex-direction: column;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  -webkit-user-select: none !important;
+  -webkit-app-region: drag !important;
+  
+}
+.noBG {
+  display: flex;
+  background-color: transparent !important;
+  flex-direction: column-reverse;
+}

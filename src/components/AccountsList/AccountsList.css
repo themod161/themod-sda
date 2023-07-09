@@ -1,0 +1,46 @@
+.accounts-search input {
+    height: 32px;
+    width: 100%;
+    background-color: rgb(40, 44, 52, 0.92);
+    border: 1px solid rgb(40, 44, 52, 0.92);
+    border-radius: 4px;
+    color: aliceblue;
+}
+.accounts-search {
+    display: flex;
+    margin-left: 5px;
+    border-radius: 5px;
+    padding: 3px 3px 3px 3px;
+    background: rgba(59, 64, 76, 0.82);
+}
+.accounts-search input:focus {
+    border: 1px solid rgba(59, 64, 76, 0.82);;
+}
+.accounts-search input:focus-visible {
+    
+    outline: none;
+}
+.accounts-list-inner {
+    padding: 10px 10px 0 10px;
+}
+.accounts-list {
+    margin-top: 10px;
+    max-height: calc(100vh - 230px);
+    overflow: auto;
+    background-color: rgba(59, 64, 76, 0.82);
+    border-radius: 3px;
+}
+
+.accounts-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+.accounts-list::-webkit-scrollbar-track {
+    background-color: transparent; 
+}
+  
+.accounts-list::-webkit-scrollbar-thumb {
+    background-color: #bbb; 
+    border-radius: 4px; 
+}
+  

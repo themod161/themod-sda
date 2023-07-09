@@ -1,0 +1,12 @@
+.hr-line {
+    display: flex;
+    align-items: center;
+}
+.hr-line hr {
+    padding: 0;
+    margin: 0;
+    width: -webkit-fill-available;
+}
+.hr-text {
+    padding: 10px;
+}

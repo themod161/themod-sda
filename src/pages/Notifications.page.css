@@ -1,0 +1,19 @@
+.notifications-inner {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.notifications-clear-button {
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(40, 44, 52, 0.92);
+    margin: 10px 10px 0px 10px;
+    transition: all .5s ease;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.notifications-clear-button:hover {
+    background-color: rgba(59, 64, 76, 0.82);
+}

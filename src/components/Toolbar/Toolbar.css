@@ -1,0 +1,18 @@
+.toolbar-inner {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 3px;
+}
+.toolbar-button {
+    padding: 3px 20px;
+    background-color: rgba(59, 64, 76, 0.82);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    transition: all .3s ease-in-out;
+}
+.toolbar-button:hover {
+    background-color: rgb(40, 44, 52, 0.8);
+    border: 1px solid rgba(59, 64, 76, 0.82);
+    border-radius: 5px;
+    user-select: none;
+}

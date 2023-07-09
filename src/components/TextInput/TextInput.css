@@ -1,0 +1,40 @@
+.text-input {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(59, 64, 76, 0.82);
+    border-radius: 8px;
+    padding: 5px;
+}
+  
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+  
+input {
+    display: flex;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.text-input-edit-button:hover, .text-input-save-button:hover {
+    background-color: rgba(40, 44, 52, 0.8);;
+}
+.text-input-edit-button, .text-input-save-button {
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    margin: 2px;
+    padding: 5px;
+    transition: all .5s;
+}
+.text-input-stable-edit, .text-input-wrapper {
+    display: flex;
+    align-items: center;
+}
+.text-input-stable-edit span, .text-input-wrapper input {
+    margin: 2px;
+}
+  

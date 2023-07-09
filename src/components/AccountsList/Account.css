@@ -1,0 +1,90 @@
+.account-wrapper.active {
+    background: transparent;
+    border-radius: 5px;
+}
+
+.account-wrapper {
+    padding: 5px;
+    margin: 5px;
+    transition: all .3s ease-out;
+    border-radius: 5px;
+    display: flex;
+    border: 1px solid rgba(40, 44, 52, 0.8);
+    justify-content: space-between;
+    background-color: rgba(40, 44, 52, 0.8);
+}
+.account-wrapper.opened {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+.account-wrapper.opened:hover {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.account-wrapper.active:hover {
+    background-color: transparent;
+}
+.account-wrapper:hover {
+    background: transparent;
+    border-radius: 5px;
+}
+.account-login-status {
+    display: flex;
+    min-width: 24px;
+    min-height: 24px;
+    border-radius: 50%;
+    margin: 5px;
+}
+
+.orange {
+    background-color: orange;
+}
+.red {
+    background-color: brown;
+}
+.green {
+    background-color: green;
+}
+.account-right {
+    display: flex;
+    align-items: center;
+}
+.account-right-button-open {
+    display: flex;
+    transition: all .5s;
+    padding: 2px;
+    border-radius: 5px;
+}
+.account-right-button-open:hover {
+    background-color: rgba(87, 96, 113, 0.8);
+    
+}
+.account-enter {
+    opacity: 0;
+    height: 0 !important;
+    transform: translateY(-40px);
+  }
+  
+  .account-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    height: max-content !important;
+    transition: opacity 700ms, height 500ms, transform 200ms;
+  }
+  
+  .account-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .account-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 500ms, transform 500ms;
+  }
+  .account-drag-over-line {
+    height: 2px;
+    margin: 5px;
+    background: #7fffd46e;
+  }

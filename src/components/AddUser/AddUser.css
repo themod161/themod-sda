@@ -1,0 +1,31 @@
+.add-user-inner {
+    display: block !important;
+}
+.add-user-icon {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    padding: 4px;
+    font-size: 24px;
+    margin-right: 10px;
+}
+.add-user-icon svg {
+    font-size: 36px;
+}
+.add-user-field {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    text-align: center;
+}
+.add-user-text {
+    margin: 0 !important;
+}
+.import-page-inner {
+    height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}

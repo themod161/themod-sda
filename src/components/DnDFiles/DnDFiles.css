@@ -1,0 +1,45 @@
+.dnd-files-inner, .add-user-inner {
+    display: flex;
+    
+    
+    align-items: center;
+    
+    justify-content: center;
+}
+.drag-drop-field, .add-user-field {
+    border: 2px dashed #999;
+    margin: 0 20px;
+    background-color: rgba(40, 44, 52, 0.8);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 15px;
+  }
+  
+  .drag-drop-field.dragging, .drag-drop-field:hover, .add-user-field:hover {
+    background-color: rgba(59, 64, 76, 0.82);
+  }
+  
+  .drag-drop-text, .add-user-text {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .or-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  .file-input {
+    display: none;
+  }
+  
+  .browse-text {
+    font-size: 16px;
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  

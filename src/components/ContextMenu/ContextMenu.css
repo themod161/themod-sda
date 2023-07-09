@@ -1,0 +1,56 @@
+.context-menu-inner {
+    position: 'fixed';
+    margin: 5px;
+    margin-top: 0;
+    padding-top: 0;
+    padding: 10px;
+    
+    background-color: rgba(40, 44, 52);
+    font-size: 16px;
+    border-radius: 5px;
+    border-top-left-radius: 0;
+    border-top: none;
+    border-top-right-radius: 0;
+    text-align: center;
+    
+}
+.context-menu-inner div {
+    margin: 5px;
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    border: 1px solid rgba(59, 64, 76, 0.82);
+    justify-content: center;
+    transition: all .5s;
+}
+.context-menu-inner div:hover {
+    border: 1px solid rgba(40, 44, 52);
+    background-color: rgba(59, 64, 76);
+}
+.context-menu-inner div svg {
+  margin-left: 5px;
+}
+
+.context-menu-inner-enter {
+    opacity: 0;
+    height: 0;
+    transform: translateY(20px);
+  }
+  
+  .context-menu-inner-enter-active {
+    opacity: 1;
+    height: auto;
+    transform: translateY(100px);
+    transition: opacity 500ms, height 500ms, transform 500ms;
+  }
+  
+  .context-menu-inner-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .context-menu-inner-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 500ms, transform 500ms;
+  }

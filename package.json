@@ -1,0 +1,64 @@
+{
+  "name": "themod-sda",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "homepage": "./",
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.0",
+    "react-scripts": "^5.0.1",
+    "react-toastify": "^9.1.3",
+    "react-tooltip": "^5.18.0",
+    "react-transition-group": "^4.4.5",
+    "request": "^2.88.2",
+    "socks-proxy-agent": "^8.0.1",
+    "steam-totp": "^2.1.2",
+    "steam-tradeoffer-manager": "^2.10.5",
+    "steam-user": "^4.28.8",
+    "steamcommunity": "^3.46.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "electron": "electron --trace-deprecation .",
+    "dev": "nodemon --watch . --exec electron .",
+    "package-win": "electron-packager . themod-sda --platform=win32 --arch=x64 --out=dist --icon=logo.ico --asar --overwrite --prune"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "logo.ico",
+    "appId": "com.themod.themod-sda"
+  },
+  "devDependencies": {
+    "asar": "^3.2.0",
+    "electron": "^25.2.0",
+    "electron-packager": "^17.1.1",
+    "@babel/plugin-proposal-private-property-in-object": "7.21.0-placeholder-for-preset-env.2"
+  }
+}
