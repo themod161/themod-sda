@@ -77,7 +77,6 @@
     margin: 0 2px 0px 5px;
     font-size: 8px;
     flex-direction: column;
-    height: 100%;
     justify-content: space-between;
     align-items: center;
 }
@@ -89,4 +88,23 @@
 }
 .notification-button svg {
     font-size: 18px;
+}
+.notification-input {
+    display: flex;
+}
+.notification-input input {
+     margin: 5px 20px 0px 20px;
+     width: 100%;
+     position: relative;
+     padding: 4px;
+     background: transparent;
+     border-color: #3f3f3f;
+     border-top: none;
+     border-left: none;
+     border-right: none;
+     border-radius: 0;
+     color: #fff;
+}
+.notification-input input:focus-visible {
+    outline: none;
 }

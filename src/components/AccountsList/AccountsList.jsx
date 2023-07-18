@@ -35,14 +35,6 @@ export default function AccountsList() {
         setAccountsList(aaa);
     }, [accounts, searchName]);
 
-    useEffect(()=> {
-       
-        
-       
-       
-    }, [accountsList, accounts])
-
-    
 
     const handleOnInput = (e)=> {
         setSearchName(e.target.value);

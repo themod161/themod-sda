@@ -9,6 +9,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.6",
+    "modclean": "^3.0.0-beta.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.14.0",
@@ -56,9 +57,9 @@
     "appId": "com.themod.themod-sda"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "7.21.0-placeholder-for-preset-env.2",
     "asar": "^3.2.0",
     "electron": "^25.2.0",
-    "electron-packager": "^17.1.1",
-    "@babel/plugin-proposal-private-property-in-object": "7.21.0-placeholder-for-preset-env.2"
+    "electron-packager": "^17.1.1"
   }
 }

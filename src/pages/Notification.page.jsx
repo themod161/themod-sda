@@ -9,7 +9,10 @@ export default function NotificationPage() {
     const [activeNotifications, setActiveNotifications] = useState([]);
     const [visible, setVisible] = useState(false);
     const [musicsPlayed, setMusicsPlayed] = useState([]);
-
+    window.addNotificationHandler = (event, data) => {
+        new Logger("New notification", "log");
+            setNotifications(prevNotifications => [...prevNotifications, data]);
+    }
     useEffect(() => {
         const addNotificationHandler = (event, data) => {
             new Logger("New notification", "log");
@@ -20,10 +23,12 @@ export default function NotificationPage() {
         };
         ipcRenderer.on('add-notification', addNotificationHandler);
         ipcRenderer.on('remove-notification', removeNotificationHandler);
+
         return () => {
             ipcRenderer.off('add-notification', addNotificationHandler);
             ipcRenderer.off('remove-notification', removeNotificationHandler)
         };
+        
     }, []);
     
 

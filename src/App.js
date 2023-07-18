@@ -1,7 +1,7 @@
 import './App.css';
 //BrowserRouter - dev.
 //HashRouter - prod.
-import { HashRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Accounts from './pages/Accounts.page';
 import Confirmations from './pages/Confirmations.page';
@@ -19,7 +19,7 @@ function App() {
   const currentPath = window.location.pathname;
 
   const renderHeader = () => {
-    if (currentPath === '/notifications') {
+    if (currentPath === '/notifications' || window.location.hash.includes('notifications')) {
       return <></>;
     } else {
       return (

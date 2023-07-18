@@ -46,8 +46,8 @@ app.on("ready", ()=> {
         width: 380,
         height: 320,
         x: width - 380,
-        resizable: false,
-        movable: false,
+        //resizable: false,
+        //movable: false,
         y: height-320,
         alwaysOnTop: true
     })
@@ -72,6 +72,12 @@ app.on("ready", ()=> {
         else mainWindow.show();
     });
     notificationWindow.loadURL((app.isPackaged ? `${app.getAppPath()}\\build\\index.html#/notifications` : 'http://localhost:3000/notifications'));
+    //test
+    notificationWindow.webContents.on('did-finish-load', ()=> {
+        notificationWindow.show();
+        notificationWindow.setSkipTaskbar(false);
+    })
+    
     mainWindow.loadURL(app.isPackaged ? `${app.getAppPath()}\\build\\index.html` : 'http://localhost:3000/');
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
@@ -80,6 +86,7 @@ app.on("ready", ()=> {
 })
 
 ipcMain.on('data-notification', (event,data) => {
+    if(!data.windowFrom) return;
     let wn = BrowserWindow.fromId(data.windowFrom);
     if(wn) wn.webContents.send('data-notification', data);
 })
@@ -295,7 +302,7 @@ ipcMain.on('try-add-accounts-by-file', (event, files)=> {
     }));
     accounts.map(account=> {
         let t = new AddUser({
-            app, BrowserWindow, ipcMain
+            app, BrowserWindow, ipcMain, notificationWindow
         }, account);
         t.loginAttempt(()=> {
             t = undefined;
@@ -324,7 +331,7 @@ ipcMain.on('try-add-accounts-by-file', (event, files)=> {
 ipcMain.on('try-add-account', (event, account) => {
     if(newAddUser) return;
     newAddUser = new AddUser({
-        app, BrowserWindow, ipcMain
+        app, BrowserWindow, ipcMain, notificationWindow
     }, account);
     newAddUser.loginAttempt(()=> {
         newAddUser = undefined;

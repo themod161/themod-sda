@@ -2,15 +2,15 @@ import Logo from '../../img/logo.png';
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
 import './Header.css';
-const electron = window.require('electron');
+const app = window.require('electron');
 
 export default function Header() {
     const minimizeWindow = () => {
-        electron.ipcRenderer.send('minimize-window');
+        app.ipcRenderer.send('minimize-window');
     };
     
     const closeWindow = () => {
-        electron.ipcRenderer.send('close-window');
+        app.ipcRenderer.send('close-window');
     };
     return <section className="header-inner">
         <div className="header-left-side">

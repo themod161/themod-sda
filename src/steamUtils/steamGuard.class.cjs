@@ -10,6 +10,11 @@ const { saveAccount } = require('./utils.class.cjs');
 const Logger = require('./logger.class.cjs');
 const EResult = SteamCommunity.EResult;
 
+function generateUniqueId() {
+    const timestamp = new Date().getTime();
+    const randomNum = Math.random().toString(36).slice(2); // Generates a random string
+    return `${timestamp}_${randomNum}`;
+}
 
 class AddGuard {
     constructor(electron, type, account, proxy={}) {
@@ -215,6 +220,7 @@ class AddGuard {
     }
     async waitForInput(text) {
         return new Promise((resolve,reject) => {
+            /*
             let WFIWindow = new this.electron.BrowserWindow({
                 width: 400,
                 height: 250,
@@ -247,6 +253,23 @@ class AddGuard {
                 if(event.sender.id != WFIWindow.id) return;
                 this.session.cancelLoginAttempt();
                 reject(new Error("You closed the window"));
+            })*/
+            let id = generateUniqueId();
+            this.electron.notificationWindow.webContents.send("add-notification", {
+                id: id,
+                icon: `logo.ico`,
+                title:`${this.account.account_name}`,
+                type: 'input',
+                message: text,
+                actions: []
+            });
+            this.electron.ipcMain.on('data-notification', (event,data) => {
+                if(data.id != id) return;
+                if(data.data == 'send') resolve(data.value);
+                else {
+                    this.session.cancelLoginAttempt();
+                    reject(new Error("You closed the window"));
+                }
             })
         });
     }
@@ -341,6 +364,7 @@ class AddUser {
     }
     async waitForInput(text) {
         return new Promise((resolve,reject) => {
+            /*
             let WFIWindow = new this.electron.BrowserWindow({
                 width: 400,
                 height: 250,
@@ -373,6 +397,23 @@ class AddUser {
                 if(event.sender.id != WFIWindow.id) return;
                 this.session.cancelLoginAttempt();
                 reject(new Error("You closed the window"));
+            })*/
+            let id = generateUniqueId();
+            this.electron.notificationWindow.webContents.send("add-notification", {
+                id: id,
+                icon: `logo.ico`,
+                title:`${this.account.account_name}`,
+                type: 'input',
+                message: text,
+                actions: []
+            });
+            this.electron.ipcMain.on('data-notification', (event,data) => {
+                if(data.id != id) return;
+                if(data.data == 'send') resolve(data.value);
+                else {
+                    this.session.cancelLoginAttempt();
+                    reject(new Error("You closed the window"));
+                }
             })
         });
     }

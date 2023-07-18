@@ -8,10 +8,11 @@ const SteamTotp = window.require('steam-totp');
 
 const steamOffset = () => 30 - Math.floor(((Date.now() % 1688340270000) / 30000 - Math.floor((Date.now() % 1688340270000) / 30000)) * 30);
 
-export default function SteamGuard({activeAccount}) {
+export default function SteamGuard() {
     let [steamGuardCode, setSteamGuardCode] = useState("-----");
     const [secondsRemaining, setSecondsRemaining] = useState(steamOffset());
     const [backgroundWidth, setBackgroundWidth] = useState('100%');
+    const {activeAccount, setActiveAccount} = useContext(AccountContext);
 
     useEffect(()=> {
       if(!activeAccount) return;

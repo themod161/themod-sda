@@ -36,7 +36,7 @@ export default function Accounts() {
       <AccountContext.Provider value={{activeAccount, setActiveAccount}}>
         <ContextMenuContext.Provider value={{contextMenu, setContextMenu}}>
           <ToolBar/>
-          <SteamGuard activeAccount={activeAccount}/>
+          <SteamGuard/>
           <AccountsList accounts={accounts}/>
         </ContextMenuContext.Provider>
       </AccountContext.Provider>
