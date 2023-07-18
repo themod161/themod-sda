@@ -14,7 +14,7 @@ const ControlInput = (props) => {
     <div className="text-input nDragble">
       <label>{title}</label>
       <div className='text-input-wrapper'>
-        <div className={`checkbox-input${!value ? ' active' : ''}`} onClick={handleClick}>
+        <div className={`checkbox-input${value ? ' active' : ''}`} onClick={handleClick}>
           <div className="checkbox-status"></div>
         </div>
         <input type="checkbox" style={{ display: "none" }}  {...inputProps} />

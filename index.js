@@ -46,8 +46,8 @@ app.on("ready", ()=> {
         width: 380,
         height: 320,
         x: width - 380,
-        //resizable: false,
-        //movable: false,
+        resizable: false,
+        movable: false,
         y: height-320,
         alwaysOnTop: true
     })
@@ -73,10 +73,10 @@ app.on("ready", ()=> {
     });
     notificationWindow.loadURL((app.isPackaged ? `${app.getAppPath()}\\build\\index.html#/notifications` : 'http://localhost:3000/notifications'));
     //test
-    notificationWindow.webContents.on('did-finish-load', ()=> {
+    /*notificationWindow.webContents.on('did-finish-load', ()=> {
         notificationWindow.show();
         notificationWindow.setSkipTaskbar(false);
-    })
+    })*/
     
     mainWindow.loadURL(app.isPackaged ? `${app.getAppPath()}\\build\\index.html` : 'http://localhost:3000/');
     mainWindow.webContents.on('did-finish-load', () => {

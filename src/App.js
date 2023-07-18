@@ -1,7 +1,7 @@
 import './App.css';
 //BrowserRouter - dev.
 //HashRouter - prod.
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Accounts from './pages/Accounts.page';
 import Confirmations from './pages/Confirmations.page';
@@ -32,7 +32,7 @@ function App() {
   };
 
   return (
-    <div className={`App${currentPath === '/notifications' ? ' noBG nDragble nSelected' : ''}`}>
+    <div className={`App${currentPath === '/notifications' || window.location.hash.includes('notifications') ? ' noBG nDragble nSelected' : ''}`}>
       {renderHeader()}
       <Router>
         <Routes>
