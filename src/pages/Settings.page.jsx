@@ -114,7 +114,7 @@ export default function SettingsPage() {
     const changeField = (e, field) => {
         let newObj = {};
         
-        if(typeof e.target.value === 'string')e.target.value = e.target.value.replace(/\s/g, '');
+        if(typeof e.target.value === 'string' && field != "display_name")e.target.value = e.target.value.replace(/\s/g, '');
         if(Array.isArray(field)) {
             newObj[field[0]] = JSON.parse(JSON.stringify(accData[field[0]]));
             if(field[1] === "ip") {
@@ -127,6 +127,9 @@ export default function SettingsPage() {
         
         setAccData((prev)=> ({...prev, ...newObj}));
     } 
+    useEffect(()=> {
+        if(Object.keys(accData).length !== 0 && activeAccount) saveAcc();
+    }, [accData.auto_confirm])
     if (Object.keys(accData).length === 0 && !activeAccount) return <>Loading...</>;
     return (
         <div className='settings-page-inner nDragble nSelected'>
@@ -137,11 +140,7 @@ export default function SettingsPage() {
             <TextInput title={"Password:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "password")} value={accData.password} />
             <TextInput title={"Display name:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "display_name")} value={accData.display_name} />
             <ControlInput title={"Auto confirm:"} onChange={(e)=> {
-                
                 changeField({target: {value: !accData.auto_confirm}}, "auto_confirm");
-                setTimeout(()=> {
-                    saveAcc();
-                }, 500);
             }} value={accData.auto_confirm} />
             <div className='settings-page-title'><h3><HttpsIcon/> Proxy</h3></div>
             <hr />

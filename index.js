@@ -1,15 +1,16 @@
 const electron = require("electron");
-const { app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut, screen } = electron;
+const { app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut, screen, dialog } = electron;
 const path = require('path');
 const Client = require('./src/steamUtils/client.class.cjs');
 const {AddGuard, AddUser} = require('./src/steamUtils/steamGuard.class.cjs');
 const Logger = require("./src/steamUtils/logger.class.cjs");
-
+let isDev = !app.isPackaged || false;
 let mainWindow;
 let importWindow;
 let steamGuardWindow;
 let tray;
 let notificationWindow;
+
 
 let openedWindows = [];
 let openedSettingsWindows = [];
@@ -28,12 +29,85 @@ let optionsForWindow = {
     webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
-        devTools: false
+        devTools: isDev
     }
 }
+const gotTheLock = app.requestSingleInstanceLock();
 
+if (!gotTheLock) {
+  app.quit();
+}
+else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.focus();
+        }
+      });
+}
+/*
+autoUpdater.autoDownload = false;
+autoUpdater.setFeedURL({
+    url: 'https://github.com/themod161/themod-sda/releases',
+    repo: "themod-sda",
+    owner: "themod161",
+    provider: 'github'
+});
+
+autoUpdater.on('update-available', () => {
+    console.info('Update available.');
+    new Logger('Update available', "log");
+    dialog.showMessageBox(
+        {
+          type: 'question',
+          buttons: ['Обновить', 'Отмена'],
+          defaultId: 0,
+          message: 'Доступно обновление. Хотите обновить приложение?'
+        },
+        (response) => {
+          if (response === 0) {
+            // Пользователь выбрал "Обновить"
+            autoUpdater.downloadUpdate();
+          }
+        }
+      );
+    // Здесь вы можете показать уведомление пользователю о наличии обновления
+  });
+  autoUpdater.on('update-not-available', ()=> {
+    new Logger('update not finded', "log");
+  })
+  autoUpdater.on('update-downloaded', () => {
+    new Logger('Update downloaded', "log");
+    console.info('Update downloaded; will install in 5 seconds');
+    // Здесь вы можете показать уведомление о том, что обновление загружено и готово к установке.
+    // После некоторой задержки запустите установку обновления:
+    /*dialog.showMessageBox(
+    {
+      type: 'question',
+      buttons: ['Установить и перезапустить', 'Позже'],
+      defaultId: 0,
+      message: 'Обновление загружено. Установить и перезапустить приложение?'
+    },
+    (response) => {
+      if (response === 0) {
+        // Пользователь выбрал "Установить и перезапустить"
+        autoUpdater.quitAndInstall();
+      }
+    }
+  );
+    setTimeout(() => {
+      //autoUpdater.quitAndInstall();
+    }, 5000);
+  });
+*/
 app.on("ready", ()=> {
-    
+    /*autoUpdater.checkForUpdatesAndNotify().then((value)=> {
+        new Logger(JSON.stringify(value.updateInfo));
+    }).catch((error)=> new Logger(error.message, 'error'));
+    setInterval(() => {
+        autoUpdater.checkForUpdatesAndNotify();
+    }, 10 * 60 * 1000);*/
     
     if (process.platform === 'win32') app.setAppUserModelId('com.themod.themod-sda');
     
@@ -51,6 +125,7 @@ app.on("ready", ()=> {
         y: height-320,
         alwaysOnTop: true
     })
+    
     tray = new Tray(path.join(__dirname, 'src', 'img', 'logo.png'));
     const contextMenu = Menu.buildFromTemplate([
         {
@@ -71,14 +146,14 @@ app.on("ready", ()=> {
         if (mainWindow.isVisible()) mainWindow.hide();
         else mainWindow.show();
     });
-    notificationWindow.loadURL((app.isPackaged ? `${app.getAppPath()}\\build\\index.html#/notifications` : 'http://localhost:3000/notifications'));
+    notificationWindow.loadURL((!isDev ? `${app.getAppPath()}\\build\\index.html#/notifications` : 'http://localhost:3000/notifications'));
     //test
     /*notificationWindow.webContents.on('did-finish-load', ()=> {
         notificationWindow.show();
         notificationWindow.setSkipTaskbar(false);
     })*/
     
-    mainWindow.loadURL(app.isPackaged ? `${app.getAppPath()}\\build\\index.html` : 'http://localhost:3000/');
+    mainWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html` : 'http://localhost:3000/');
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
         mainWindow.setSkipTaskbar(false);
@@ -157,8 +232,8 @@ ipcMain.on('update-account-by-username', async (event, account) => {
     let accountWindow = openedWindows.find(x=> x.account_name == tempAccount.account.account_name);
     if(accountWindow) {
         accountWindow.window.webContents.send('update-account-by-username', account);
-        if(accountWindow.isVisible) accountWindow.show();
-        else accountWindow.hide();
+        if(accountWindow.window.isVisible()) accountWindow.window.show();
+        else accountWindow.window.hide();
         
     }
 })
@@ -192,10 +267,10 @@ ipcMain.on('open-account-settings', async (event, account) => {
                 nodeIntegration: true,
                 enableRemoteModule: true,
                 contextIsolation: false,
-                devTools: false
+                devTools: isDev
             }
         });
-        BrWindow.loadURL(app.isPackaged ? `${app.getAppPath()}\\build\\index.html#${'/settings'}` : 'http://localhost:3000/settings');
+        BrWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/settings'}` : 'http://localhost:3000/settings');
         BrWindow.webContents.on('did-finish-load', () => {
             BrWindow.setTitle(`${account.getAccountName()} - settings`);
             BrWindow.webContents.send('account-load', account.stringify());
@@ -245,12 +320,12 @@ ipcMain.on('load-account-confirmations', async (event, account) => {
                 nodeIntegration: true,
                 enableRemoteModule: true,
                 contextIsolation: false,
-                devTools: false
+                devTools: isDev
             }
         });
         
         
-        BrWindow.loadURL(app.isPackaged ? `${app.getAppPath()}\\build\\index.html#${'/confirmations'}` : 'http://localhost:3000/confirmations');
+        BrWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/confirmations'}` : 'http://localhost:3000/confirmations');
         BrWindow.webContents.on('did-finish-load', () => {
             BrWindow.setTitle(`${account.getAccountName()} - confirmations`);
             BrWindow.webContents.send('account-load', account.stringify());
@@ -371,14 +446,14 @@ ipcMain.on('import-account', async (event)=> {
             nodeIntegration: true,
             enableRemoteModule: true,
             contextIsolation: false,
-            devTools: false
+            devTools: isDev
         }
     });
     importWindow.once('ready-to-show', () => {
         importWindow.show();
         importWindow.setSkipTaskbar(false);
     });
-    importWindow.loadURL(app.isPackaged ? `${app.getAppPath()}\\build\\index.html#${'/import'}` : 'http://localhost:3000/import');
+    importWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/import'}` : 'http://localhost:3000/import');
 })
 
 app.on('window-all-closed', () => {

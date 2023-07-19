@@ -17,7 +17,6 @@ import NotificationPage from './pages/Notification.page';
 
 function App() {
   const currentPath = window.location.pathname;
-
   const renderHeader = () => {
     if (currentPath === '/notifications' || window.location.hash.includes('notifications')) {
       return <></>;
