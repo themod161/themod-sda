@@ -30,6 +30,9 @@ const getMaFiles = (dir = maFilesPath) => {
 };
 const setSettings = (data) => {
     if(typeof data !== 'object') return;
+    if (!fs.existsSync(maFilesPath)) {
+        fs.mkdirSync(maFilesPath);
+    }
     if (!fs.existsSync(settingsPath)) {
         fs.writeFileSync(settingsPath, JSON.stringify({
             bot_token: ""
@@ -40,6 +43,9 @@ const setSettings = (data) => {
     return;
 }
 const getSettings = () => {
+    if (!fs.existsSync(maFilesPath)) {
+        fs.mkdirSync(maFilesPath);
+    }
     if (!fs.existsSync(settingsPath)) {
         fs.writeFileSync(settingsPath, JSON.stringify({
             bot_token: ""
