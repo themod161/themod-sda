@@ -62,8 +62,9 @@ const loginToBot = () => {
         new Logger(`{TGBOT} ${error.message}`, "error");
     }
 }
-loginToBot();
+
 if (!gotTheLock) {
+    bot.bot.logOut();
   app.quit();
 }
 else {
@@ -74,6 +75,7 @@ else {
           mainWindow.focus();
         }
       });
+      loginToBot();
 }
 /*
 autoUpdater.autoDownload = false;
@@ -165,6 +167,7 @@ app.on("ready", ()=> {
             label: 'Quit',
             click: () => {
                 app.quit();
+                if(bot) bot.bot.logOut();
                 tray.destroy();
             }
         }
@@ -285,7 +288,10 @@ ipcMain.on('update-app-settings', async (event) => {
         if(newSettings.bot_token) {
             loginToBot();
         }
-        else if(bot) bot.logOut();
+        else if(bot) {
+            bot.bot.logOut();
+            bot = undefined;
+        }
     }
     settings = newSettings;
 })
@@ -523,6 +529,7 @@ ipcMain.on('import-account', async (event)=> {
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
+    if(bot) bot.bot.logOut();
 });
 app.on('quit', ()=> {
     tray.destroy();
