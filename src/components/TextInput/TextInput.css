@@ -19,10 +19,17 @@ input {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
-.text-input-edit-button:hover, .text-input-save-button:hover {
+.text-input-edit-button:hover, .text-input-save-button:hover, .text-input-show-button:hover {
     background-color: rgba(40, 44, 52, 0.8);;
 }
-.text-input-edit-button, .text-input-save-button {
+.text-input-show-button.active {
+    background-color: rgba(40, 44, 52, 0.8);;
+    transition: all .5s;
+}
+.text-input-show-button.active:hover {
+    background-color: rgba(59, 64, 76, 0.82);
+}
+.text-input-edit-button, .text-input-save-button, .text-input-show-button {
     display: flex;
     align-items: center;
     border-radius: 5px;
@@ -37,4 +44,16 @@ input {
 .text-input-stable-edit span, .text-input-wrapper input {
     margin: 2px;
 }
-  
+.text-get-bot-token {
+    font-size: 12px;
+    color: gray;
+    display: flex;
+    padding: 5px;
+    cursor: pointer;
+}
+.text-get-bot-token-inner {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    justify-content: center;
+}

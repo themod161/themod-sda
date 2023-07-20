@@ -7,6 +7,7 @@ const path = window.require('path');
 
 const maFilesPath = './maFiles';
 const accountsFile = path.join(maFilesPath, 'accounts.json');
+const settingsPath = path.join(maFilesPath, 'settings.json');
 
 export const getMaFiles = (dir = maFilesPath) => {
     let accounts = [];
@@ -46,6 +47,26 @@ export const saveAccount = (account, props = {}) => {
     let saveAccountsFile = (data)=> fs.writeFileSync(accountsFile, JSON.stringify(data, null, '\t'));
     
     saveAccountsFile(accounts);
+}
+export const setSettings = (data) => {
+    if(typeof data !== 'object') return;
+    if (!fs.existsSync(settingsPath)) {
+        fs.writeFileSync(settingsPath, JSON.stringify({
+            bot_token: "",
+            user_id: ""
+        }));
+    }
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    fs.writeFileSync(settingsPath, JSON.stringify({...settings,...data}, null, '\t'));
+    return;
+}
+export const getSettings = () => {
+    if (!fs.existsSync(settingsPath)) {
+        fs.writeFileSync(settingsPath, JSON.stringify({
+            bot_token: ""
+        }));
+    }
+    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
 }
 export const removeAccount = (account_name) => {
     if (!fs.existsSync(accountsFile)) {

@@ -13,6 +13,7 @@ import { ToastContainer } from 'react-toastify';
 import SettingsPage from './pages/Settings.page';
 import LoginPage from './pages/Login.page';
 import NotificationPage from './pages/Notification.page';
+import AppSettings from './pages/AppSettings.page';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
       <Router>
         <Routes>
           <Route path='/settings' element={<SettingsPage />} />
+          <Route path='/appsettings' element={<AppSettings />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/notifications' element={<NotificationPage />}/>
           <Route path='/needInput' element={<InputPage />} />

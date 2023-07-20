@@ -6,6 +6,7 @@ const path = require('path');
 
 const maFilesPath = './maFiles';
 const accountsFile = path.join(maFilesPath, 'accounts.json');
+const settingsPath = path.join(maFilesPath, 'settings.json');
 
 const getMaFiles = (dir = maFilesPath) => {
     let accounts = [];
@@ -27,6 +28,26 @@ const getMaFiles = (dir = maFilesPath) => {
 
     return accounts;
 };
+const setSettings = (data) => {
+    if(typeof data !== 'object') return;
+    if (!fs.existsSync(settingsPath)) {
+        fs.writeFileSync(settingsPath, JSON.stringify({
+            bot_token: ""
+        }));
+    }
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    fs.writeFileSync(accountsFile, JSON.stringify({...settings,...data}, null, '\t'));
+    return;
+}
+const getSettings = () => {
+    if (!fs.existsSync(settingsPath)) {
+        fs.writeFileSync(settingsPath, JSON.stringify({
+            bot_token: ""
+        }));
+    }
+    
+    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+}
 const saveAccount = (account, ...props) => {
     let {steamId} = props;
     if(!account.account) account.account = account;
@@ -86,5 +107,7 @@ const getAccounts = async () => {
 module.exports = {
     getMaFiles,
     getAccounts,
-    saveAccount
+    saveAccount,
+    getSettings,
+    setSettings
 }

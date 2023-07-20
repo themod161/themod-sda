@@ -1,7 +1,3 @@
-label {
-  margin: 0;
-}
-
 .settings-page-inner {
     margin: 10px;
     margin-right: 0;
@@ -53,11 +49,8 @@ label {
 }
 .settings-page-title h3 {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
-}
-.settings-page-title h3 svg {
-  margin-right: 5px;
 }
 h1,h2,h3,h4,h5,h6 {
     margin: 0;

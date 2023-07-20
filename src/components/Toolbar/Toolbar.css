@@ -8,6 +8,7 @@
     background-color: rgba(59, 64, 76, 0.82);
     border: 1px solid transparent;
     border-radius: 5px;
+    display: flex;
     transition: all .3s ease-in-out;
 }
 .toolbar-button:hover {
@@ -15,4 +16,7 @@
     border: 1px solid rgba(59, 64, 76, 0.82);
     border-radius: 5px;
     user-select: none;
+}
+.toolbar-button svg {
+    margin-right: 5px;
 }

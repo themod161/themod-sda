@@ -137,7 +137,7 @@ export default function SettingsPage() {
             <div className='settings-page-title'><h3><PersonIcon/> Account</h3></div>
             <hr/>
             <TextInput title={"Login:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "account_name")} disabled={true} value={accData.account_name} />
-            <TextInput title={"Password:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "password")} value={accData.password} />
+            <TextInput title={"Password:"} needHide={true} hide={true} onComplete={saveAcc} onInput={(e)=> changeField(e, "password")} value={accData.password} />
             <TextInput title={"Display name:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "display_name")} value={accData.display_name} />
             <ControlInput title={"Auto confirm:"} onChange={(e)=> {
                 changeField({target: {value: !accData.auto_confirm}}, "auto_confirm");

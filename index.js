@@ -1,16 +1,23 @@
 const electron = require("electron");
+
 const { app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut, screen, dialog } = electron;
 const path = require('path');
 const Client = require('./src/steamUtils/client.class.cjs');
 const {AddGuard, AddUser} = require('./src/steamUtils/steamGuard.class.cjs');
 const Logger = require("./src/steamUtils/logger.class.cjs");
+const { getSettings } = require("./src/steamUtils/utils.class.cjs");
+const TelegramBot = require("./src/steamUtils/telegramBot.class.cjs");
+let settings = getSettings();
+
+
 let isDev = !app.isPackaged || false;
 let mainWindow;
 let importWindow;
 let steamGuardWindow;
 let tray;
 let notificationWindow;
-
+let settingsWindow;
+let bot;
 
 let openedWindows = [];
 let openedSettingsWindows = [];
@@ -33,7 +40,29 @@ let optionsForWindow = {
     }
 }
 const gotTheLock = app.requestSingleInstanceLock();
+const loginToBot = () => {
+    try {
+        bot = new TelegramBot(settings.bot_token, (query) => {
+            let confirm_data = query.data.match(/\((?<username>.*)\)_(?<id>[0-9]+)_(?<response>.*)/mi);
+            let {username, id, response} = confirm_data.groups;
+            let accWindow = openedWindows.find(x=> x.account_name == username);
+            if(accWindow) {
 
+                accWindow.window.webContents.send('data-notification', {
+                    id,
+                    data: response
+                })
+            }
+            bot.bot.deleteMessage(query.message.chat.id, query.message.message_id);
+        });
+        if(settings.user_id) {
+            bot.sendMessage(settings.user_id, "I'm here");
+        }
+    } catch (error) {
+        new Logger(`{TGBOT} ${error.message}`, "error");
+    }
+}
+loginToBot();
 if (!gotTheLock) {
   app.quit();
 }
@@ -167,7 +196,20 @@ ipcMain.on('data-notification', (event,data) => {
 })
 
 ipcMain.on('add-notification', (event,data)=> {
-    if(notificationWindow) notificationWindow.webContents.send("add-notification", {...data, windowFrom: event.sender.id});
+    if(notificationWindow) {
+        notificationWindow.webContents.send("add-notification", {...data, windowFrom: event.sender.id});
+        if(bot && settings.user_id && data.type != 'input') {
+            let keyboard = {
+                reply_markup: {
+                    inline_keyboard: []
+                }
+            };
+            if(data.actions) {
+                keyboard.reply_markup.inline_keyboard = [data.actions.map(x=> ({"text": `${x.data.charAt(0).toUpperCase() + x.data.slice(1)}`, "callback_data": `(${data.account_name})_${data.id}_${x.data}`}))];
+            }
+            bot.sendMessage(settings.user_id, `Account: ${data.title}\n\nMessage: ${data.message}`, keyboard);
+        }
+    }
 });
 ipcMain.on('toggle-guard', async (event, account) => {
     if(steamGuardWindow) return;
@@ -236,6 +278,27 @@ ipcMain.on('update-account-by-username', async (event, account) => {
         else accountWindow.window.hide();
         
     }
+});
+ipcMain.on('update-app-settings', async (event) => {
+    let newSettings = getSettings();
+    if(newSettings.bot_token != settings.bot_token) {
+        if(newSettings.bot_token) {
+            loginToBot();
+        }
+        else if(bot) bot.logOut();
+    }
+    settings = newSettings;
+})
+ipcMain.on('open-settings', async (event) => {
+    if (settingsWindow) return;
+    settingsWindow = new BrowserWindow(optionsForWindow);
+    settingsWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/appsettings'}` : 'http://localhost:3000/appsettings');
+    settingsWindow.webContents.on('did-finish-load', () => {
+        settingsWindow.setTitle(`themod-sda - settings`);
+        settingsWindow.webContents.send('settings-load', settings);
+        settingsWindow.show();
+        settingsWindow.setSkipTaskbar(false);
+    });
 })
 ipcMain.on('open-account-settings', async (event, account) => {
     account = await new Client().restore(JSON.parse(account));
@@ -343,7 +406,8 @@ ipcMain.on('open-account-confirmations', async (event, account)=> {
 });
 
 ipcMain.on('minimize-window', (event) => {
-    BrowserWindow.fromId(event.sender.id).minimize();
+    let wn = BrowserWindow.fromId(event.sender.id);
+    if(wn) wn.minimize();
 });
 ipcMain.on('close-window', (event) => {
     if(openedSettingsWindows.find(x=> x.window.id == event.sender.id)) {
@@ -359,7 +423,8 @@ ipcMain.on('close-window', (event) => {
     }
     if(event.sender.id !== mainWindow.id) {
         if(!BrowserWindow.fromId(event.sender.id)) return event.sender.close();
-        BrowserWindow.fromId(event.sender.id).close();  
+        BrowserWindow.fromId(event.sender.id).close();
+        if(settingsWindow && event.sender.id === settingsWindow.id) settingsWindow = undefined;
         if(importWindow && event.sender.id === importWindow.id) importWindow = undefined;
         if(steamGuardWindow && event.sender.id === steamGuardWindow.id) steamGuardWindow = undefined;
     }

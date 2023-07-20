@@ -50,6 +50,7 @@ export default function Confirmations() {
                     id: item.id,
                     icon: item.icon,
                     title: accountSession.getDisplayName() || accountSession.getAccountName(),
+                    account_name: accountSession.getAccountName(),
                     message: item.sending.includes(`You will`) ? `${item.sending}
 ${item.receiving}` : `You selling ${item.sending} ${item.title.split('Selling ')[1] || 100}`,
                     actions: [{icon: 'check', data: 'accept'}, {icon: 'block', data: 'decline'}]
@@ -75,6 +76,7 @@ ${item.receiving}` : `You selling ${item.sending} ${item.title.split('Selling ')
                 id: tradeOffer.id,
                 icon: tradeOffer.tradeInformation.them.avatarFull,
                 title: accountSession.getDisplayName() || accountSession.getAccountName(),
+                account_name: accountSession.getAccountName(),
                 message: `${tradeOffer.tradeInformation.them.personaName} sent you trade offer.\nYou will receive ${tradeOffer.tradeOffer.itemsToReceive.length}.\nYou will give ${tradeOffer.tradeOffer.itemsToGive.length}.`,
                 actions: [{icon: 'check', data: 'accept'}, {icon: 'block', data: 'decline'}]
             });
@@ -93,6 +95,7 @@ ${item.receiving}` : `You selling ${item.sending} ${item.title.split('Selling ')
                     id: newOffer.id,
                     icon: newOffer.tradeInformation.them.avatarFull,
                     title: accountSession.getDisplayName() || accountSession.getAccountName(),
+                    account_name: accountSession.getAccountName(),
                     message: `${newOffer.tradeInformation.them.personaName} sent you trade offer.\nYou will receive ${newOffer.tradeOffer.itemsToReceive.length}.\nYou will give ${newOffer.tradeOffer.itemsToGive.length}.`,
                     actions: [{icon: 'check', data: 'accept'}, {icon: 'block', data: 'decline'}]
                 });
