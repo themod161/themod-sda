@@ -12,10 +12,10 @@ export default function ConfirmationMarket({thisConfirmation, sets}) {
     const accountSession = useContext(ClientContext);
     const [processStatus, setProcessStatus] = useState(false);
     useEffect(() => {
-        if(accountSession.account.auto_confirm) {
+        if(accountSession.account.auto_confirm_market) {
             answerConfirmation(true);
         }
-    }, [accountSession]);
+    }, [accountSession.account.auto_confirm_market]);
     useEffect(()=> {
             ipcRenderer.on('data-notification', (event, data) => {
                 if(thisConfirmation.id == data.id) answerConfirmation(data.data == "accept");

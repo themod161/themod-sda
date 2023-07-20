@@ -28,7 +28,8 @@ export default function SettingsPage() {
                 password: account.account.password || "",
                 proxy: account.account.proxy ||"",
                 display_name: account.account.display_name || "",
-                auto_confirm: account.account.auto_confirm || false,
+                auto_confirm_market: account.account.auto_confirm_market || false,
+                auto_confirm_trades: account.account.auto_confirm_trades || false,
                 tempProxy: parseProxy(account.account.proxy || "") || {protocol: undefined, ip: undefined, port: undefined, username: undefined, password: undefined}
             })
         });
@@ -43,7 +44,7 @@ export default function SettingsPage() {
         }
         return false;
     }
-    const toSave = () => ({account_name: accData.account_name, password: accData.password, proxy: accData.proxy, auto_confirm: accData.auto_confirm, display_name: accData.display_name})
+    const toSave = () => ({account_name: accData.account_name, password: accData.password, proxy: accData.proxy, auto_confirm_market: accData.auto_confirm_market, auto_confirm_trades: accData.auto_confirm_trades, display_name: accData.display_name})
     const doRequest = async(proxyString) => {
         try {
             setCheckProxyStatus(`Pending`);
@@ -129,7 +130,7 @@ export default function SettingsPage() {
     } 
     useEffect(()=> {
         if(Object.keys(accData).length !== 0 && activeAccount) saveAcc();
-    }, [accData.auto_confirm])
+    }, [accData.auto_confirm_trades, accData.auto_confirm_market]);
     if (Object.keys(accData).length === 0 && !activeAccount) return <>Loading...</>;
     return (
         <div className='settings-page-inner nDragble nSelected'>
@@ -139,9 +140,12 @@ export default function SettingsPage() {
             <TextInput title={"Login:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "account_name")} disabled={true} value={accData.account_name} />
             <TextInput title={"Password:"} needHide={true} hide={true} onComplete={saveAcc} onInput={(e)=> changeField(e, "password")} value={accData.password} />
             <TextInput title={"Display name:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "display_name")} value={accData.display_name} />
-            <ControlInput title={"Auto confirm:"} onChange={(e)=> {
-                changeField({target: {value: !accData.auto_confirm}}, "auto_confirm");
-            }} value={accData.auto_confirm} />
+            <ControlInput title={"Market auto-confirm:"} onChange={(e)=> {
+                changeField({target: {value: !accData.auto_confirm_market}}, "auto_confirm_market");
+            }} value={accData.auto_confirm_market} />
+            <ControlInput title={"Trades auto-confirm:"} onChange={(e)=> {
+                changeField({target: {value: !accData.auto_confirm_trades}}, "auto_confirm_trades");
+            }} value={accData.auto_confirm_trades} />
             <div className='settings-page-title'><h3><HttpsIcon/> Proxy</h3></div>
             <hr />
             <TextComponent title={"Reset proxy:"} value={<div onClick={clearProxy} className='check-proxy-button'>Reset proxy</div>}/>

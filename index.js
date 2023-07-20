@@ -40,8 +40,16 @@ let optionsForWindow = {
     }
 }
 const gotTheLock = app.requestSingleInstanceLock();
+const generateWindowLink = (url, basePath = './build/index.html') => {
+    return `${path.join(__dirname, basePath)}${url}`;
+}
 const loginToBot = () => {
+    if(!settings.bot_token) return;
     try {
+        if(bot) {
+            bot.bot.stopPolling();
+            bot = undefined;
+        }
         bot = new TelegramBot(settings.bot_token, (query) => {
             let confirm_data = query.data.match(/\((?<username>.*)\)_(?<id>[0-9]+)_(?<response>.*)/mi);
             let {username, id, response} = confirm_data.groups;
@@ -64,82 +72,19 @@ const loginToBot = () => {
 }
 
 if (!gotTheLock) {
-    bot.bot.logOut();
-  app.quit();
+    if(bot) bot.bot.stopPolling();
+    app.quit();
 }
 else {
     app.on('second-instance', (event, commandLine, workingDirectory) => {
-        
         if (mainWindow) {
           if (mainWindow.isMinimized()) mainWindow.restore();
           mainWindow.focus();
         }
-      });
-      loginToBot();
+    });
+    loginToBot();
 }
-/*
-autoUpdater.autoDownload = false;
-autoUpdater.setFeedURL({
-    url: 'https://github.com/themod161/themod-sda/releases',
-    repo: "themod-sda",
-    owner: "themod161",
-    provider: 'github'
-});
-
-autoUpdater.on('update-available', () => {
-    console.info('Update available.');
-    new Logger('Update available', "log");
-    dialog.showMessageBox(
-        {
-          type: 'question',
-          buttons: ['Обновить', 'Отмена'],
-          defaultId: 0,
-          message: 'Доступно обновление. Хотите обновить приложение?'
-        },
-        (response) => {
-          if (response === 0) {
-            // Пользователь выбрал "Обновить"
-            autoUpdater.downloadUpdate();
-          }
-        }
-      );
-    // Здесь вы можете показать уведомление пользователю о наличии обновления
-  });
-  autoUpdater.on('update-not-available', ()=> {
-    new Logger('update not finded', "log");
-  })
-  autoUpdater.on('update-downloaded', () => {
-    new Logger('Update downloaded', "log");
-    console.info('Update downloaded; will install in 5 seconds');
-    // Здесь вы можете показать уведомление о том, что обновление загружено и готово к установке.
-    // После некоторой задержки запустите установку обновления:
-    /*dialog.showMessageBox(
-    {
-      type: 'question',
-      buttons: ['Установить и перезапустить', 'Позже'],
-      defaultId: 0,
-      message: 'Обновление загружено. Установить и перезапустить приложение?'
-    },
-    (response) => {
-      if (response === 0) {
-        // Пользователь выбрал "Установить и перезапустить"
-        autoUpdater.quitAndInstall();
-      }
-    }
-  );
-    setTimeout(() => {
-      //autoUpdater.quitAndInstall();
-    }, 5000);
-  });
-*/
 app.on("ready", ()=> {
-    /*autoUpdater.checkForUpdatesAndNotify().then((value)=> {
-        new Logger(JSON.stringify(value.updateInfo));
-    }).catch((error)=> new Logger(error.message, 'error'));
-    setInterval(() => {
-        autoUpdater.checkForUpdatesAndNotify();
-    }, 10 * 60 * 1000);*/
-    
     if (process.platform === 'win32') app.setAppUserModelId('com.themod.themod-sda');
     
     mainWindow = new BrowserWindow(optionsForWindow);
@@ -167,7 +112,7 @@ app.on("ready", ()=> {
             label: 'Quit',
             click: () => {
                 app.quit();
-                if(bot) bot.bot.logOut();
+                if(bot) bot.bot.stopPolling();
                 tray.destroy();
             }
         }
@@ -178,14 +123,8 @@ app.on("ready", ()=> {
         if (mainWindow.isVisible()) mainWindow.hide();
         else mainWindow.show();
     });
-    notificationWindow.loadURL((!isDev ? `${app.getAppPath()}\\build\\index.html#/notifications` : 'http://localhost:3000/notifications'));
-    //test
-    /*notificationWindow.webContents.on('did-finish-load', ()=> {
-        notificationWindow.show();
-        notificationWindow.setSkipTaskbar(false);
-    })*/
-    
-    mainWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html` : 'http://localhost:3000/');
+    notificationWindow.loadURL((!isDev ? generateWindowLink(`#/notifications`) : 'http://localhost:3000/notifications'));
+    mainWindow.loadURL(!isDev ? generateWindowLink(``) : `http://localhost:3000`);
     mainWindow.webContents.on('did-finish-load', () => {
         mainWindow.show();
         mainWindow.setSkipTaskbar(false);
@@ -223,7 +162,7 @@ ipcMain.on('toggle-guard', async (event, account) => {
     }
     if(newGuardAccount) return;
     newGuardAccount = new AddGuard({
-        app, BrowserWindow, ipcMain
+        app, BrowserWindow, ipcMain, notificationWindow
     }, account.account.guard ? 'remove': 'add', account);
     try {
         newGuardAccount.loginAttempt((type)=> {
@@ -277,19 +216,20 @@ ipcMain.on('update-account-by-username', async (event, account) => {
     let accountWindow = openedWindows.find(x=> x.account_name == tempAccount.account.account_name);
     if(accountWindow) {
         accountWindow.window.webContents.send('update-account-by-username', account);
-        if(accountWindow.window.isVisible()) accountWindow.window.show();
-        else accountWindow.window.hide();
+        //if(accountWindow.window.isVisible()) accountWindow.window.show();
+        //else accountWindow.window.hide();
         
     }
 });
 ipcMain.on('update-app-settings', async (event) => {
     let newSettings = getSettings();
     if(newSettings.bot_token != settings.bot_token) {
+        settings = newSettings;
         if(newSettings.bot_token) {
             loginToBot();
         }
         else if(bot) {
-            bot.bot.logOut();
+            bot.bot.stopPolling();
             bot = undefined;
         }
     }
@@ -298,7 +238,7 @@ ipcMain.on('update-app-settings', async (event) => {
 ipcMain.on('open-settings', async (event) => {
     if (settingsWindow) return;
     settingsWindow = new BrowserWindow(optionsForWindow);
-    settingsWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/appsettings'}` : 'http://localhost:3000/appsettings');
+    settingsWindow.loadURL(!isDev ? generateWindowLink('#/appsettings') : 'http://localhost:3000/appsettings');
     settingsWindow.webContents.on('did-finish-load', () => {
         settingsWindow.setTitle(`themod-sda - settings`);
         settingsWindow.webContents.send('settings-load', settings);
@@ -339,7 +279,8 @@ ipcMain.on('open-account-settings', async (event, account) => {
                 devTools: isDev
             }
         });
-        BrWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/settings'}` : 'http://localhost:3000/settings');
+        
+        BrWindow.loadURL(!isDev ? generateWindowLink('#/settings') : 'http://localhost:3000/settings');
         BrWindow.webContents.on('did-finish-load', () => {
             BrWindow.setTitle(`${account.getAccountName()} - settings`);
             BrWindow.webContents.send('account-load', account.stringify());
@@ -394,7 +335,7 @@ ipcMain.on('load-account-confirmations', async (event, account) => {
         });
         
         
-        BrWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/confirmations'}` : 'http://localhost:3000/confirmations');
+        BrWindow.loadURL(!isDev ? generateWindowLink('#/confirmations') : 'http://localhost:3000/confirmations');
         BrWindow.webContents.on('did-finish-load', () => {
             BrWindow.setTitle(`${account.getAccountName()} - confirmations`);
             BrWindow.webContents.send('account-load', account.stringify());
@@ -524,12 +465,13 @@ ipcMain.on('import-account', async (event)=> {
         importWindow.show();
         importWindow.setSkipTaskbar(false);
     });
-    importWindow.loadURL(!isDev ? `${app.getAppPath()}\\build\\index.html#${'/import'}` : 'http://localhost:3000/import');
+    
+    importWindow.loadURL(!isDev ? generateWindowLink('#/import') : 'http://localhost:3000/import');
 })
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
-    if(bot) bot.bot.logOut();
+    if(bot) bot.bot.stopPolling();
 });
 app.on('quit', ()=> {
     tray.destroy();

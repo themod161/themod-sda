@@ -13,7 +13,7 @@ function ButtonNotification({ data, notificationWindow, id, onClick, close }) {
                 id,
                 data: data.data
             });
-            //close();
+            close();
         }
     }
     if (typeof data.icon == 'string') switch (data.icon) {
@@ -24,10 +24,11 @@ function ButtonNotification({ data, notificationWindow, id, onClick, close }) {
         {data.icon}
     </div>
 }
-export default function DefaultNotification({ notification, removeNotification, musicPlayed, setMusicsPlayed }) {
+export default function DefaultNotification({ notification, removeNotification, musicPlayed, setMusicsPlayed}) {
     const [needDelete, setNeedDelete] = useState(true);
     const [timer, setTimer] = useState(15);
     useEffect(() => {
+        if(notification.withoutTimer) return;
         const timer = setInterval(() => {
             if(needDelete) setTimer((prevSeconds) => prevSeconds - 1);
         }, 1000);

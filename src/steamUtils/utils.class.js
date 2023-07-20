@@ -34,9 +34,9 @@ export const saveAccount = (account, props = {}) => {
     let accounts = JSON.parse(fs.readFileSync(accountsFile, 'utf8'));
     let fAccount = accounts.find(acc => acc.account_name === account.account.account_name);
     
-    if(!fAccount) accounts.push({account_name: account.account.account_name , maFilePath: account.account.maFilePath, password: account.account.password || "", display_name: account.account.display_name || "", proxy: account.account.proxy || "", auto_confirm: account.account.auto_confirm || false, guard: true});
+    if(!fAccount) accounts.push({account_name: account.account.account_name , maFilePath: account.account.maFilePath, password: account.account.password || "", display_name: account.account.display_name || "", proxy: account.account.proxy || "", auto_confirm_market: account.account.auto_confirm_market || false, auto_confirm_trades: account.account.auto_confirm_trades || false, guard: true});
     else {
-        fAccount = {...fAccount, account_name: account.account.account_name, auto_confirm: account.account.auto_confirm || false, password: account.account.password, display_name: account.account.display_name || "", proxy: account.account.proxy || "", guard: true};
+        fAccount = {...fAccount, ...account.account, guard: true};
         accounts[accounts.findIndex((acc)=> acc.account_name === fAccount.account_name)] = fAccount;
     }
     

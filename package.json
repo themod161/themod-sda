@@ -21,7 +21,8 @@
     "steam-totp": "^2.1.2",
     "steam-tradeoffer-manager": "^2.10.5",
     "steam-user": "^4.28.8",
-    "steamcommunity": "^3.46.1"
+    "steamcommunity": "^3.46.1",
+    "steamstore": "^2.3.0"
   },
   "scripts": {
     "start": "react-scripts start",

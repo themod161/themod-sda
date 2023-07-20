@@ -15,7 +15,7 @@ export default function ConfirmationTrade({thisConfirmation, sets}) {
     const mainComponentOpponentRef = useRef();
     const [processStatus, setProcessStatus] = useState(false);
     useEffect(()=> {
-        if(accountSession.account.auto_confirm && thisConfirmation.tradeOffer.itemsToGive.length == 0) {
+        if(accountSession.account.auto_confirm_trades && thisConfirmation.tradeOffer.itemsToGive.length == 0) {
             answerConfirmation(true);
         }
         ipcRenderer.on('data-notification', (event, data) => {

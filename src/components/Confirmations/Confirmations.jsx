@@ -44,7 +44,7 @@ export default function Confirmations() {
             });
             if(newData.length == 0) return;
             newData.forEach(item => {
-                if(accountSession.account.auto_confirm) return;
+                if(item.sending.includes(`You will`) ? accountSession.account.auto_confirm_trades : accountSession.account.auto_confirm_market) return;
                
                 ipcRenderer.send('add-notification', {
                     id: item.id,

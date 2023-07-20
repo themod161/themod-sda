@@ -2,6 +2,7 @@ const {Proxy, parseProxy} = require("./proxy.class.cjs")
 const SteamCommunity = require('steamcommunity');
 const SteamSession = require('steam-session');
 const SteamTotp = require('steam-totp');
+const SteamStore = require('steamstore');
 const ReadLine = require('readline');
 const FS = require('fs');
 const SteamUser = require('steam-user');
@@ -19,7 +20,7 @@ function generateUniqueId() {
 class AddGuard {
     constructor(electron, type, account, proxy={}) {
         this.electron = {
-            app: electron.app, BrowserWindow: electron.BrowserWindow, ipcMain: electron.ipcMain
+            app: electron.app, BrowserWindow: electron.BrowserWindow, ipcMain: electron.ipcMain, notificationWindow: electron.notificationWindow
         };
         this.type = type;
         this.account = account;
@@ -29,25 +30,6 @@ class AddGuard {
         this.session = new SteamSession.LoginSession(SteamSession.EAuthTokenPlatformType.MobileApp);
         this.community = new SteamCommunity();
         this.cookies = [];
-        this.session.on('authenticated', async () => {
-            let accessToken = this.session.accessToken;
-            let cookies = await this.session.getWebCookies();
-            
-            this.cookies = cookies;
-            this.account.password = this.password;
-            this.community.setCookies(cookies);
-            this.community.setMobileAppAccessToken(accessToken);
-            if(this.type == 'add') this.doSetup();
-            else this.removeGuard();
-        });
-        this.session.on('timeout', () => {
-            this.onError(new Error('This login attempt has timed out.'));
-            
-        });
-        this.session.on('error', (err) => {
-            this.onError(err);
-            
-        });
     }
     async loginAttempt(callback = ()=> {}, onError=()=> {}) {
         this.callback = callback;
@@ -64,6 +46,7 @@ class AddGuard {
                 else options = {httpProxy: this.account.account.proxy.getProxyUrl()};
                 this.session = new SteamSession.LoginSession(SteamSession.EAuthTokenPlatformType.MobileApp, options);
             }
+
             this.session.on('authenticated', async () => {
                 let accessToken = this.session.accessToken;
                 let cookies = await this.session.getWebCookies();
@@ -84,18 +67,16 @@ class AddGuard {
                 
             });
             let startResult = await this.session.startWithCredentials({accountName: login, password: password});
+            this.actionRequired = startResult.actionRequired;
             if (startResult.actionRequired) {
                 let codeActionTypes = [SteamSession.EAuthSessionGuardType.EmailCode, SteamSession.EAuthSessionGuardType.DeviceCode];
                 let codeAction = startResult.validActions.find(action => codeActionTypes.includes(action.type));
                 let text = ``;
                 if (codeAction) {
                     if (codeAction.type == SteamSession.EAuthSessionGuardType.EmailCode) {
-                        
-                        text = `A code has been sent to your email address at ${codeAction.detail}. Write him here:`;
+                        text = `Email code:`;
                     } else {
-                       
-                        
-                        text = `You need to provide a Steam Guard Mobile Authenticator code. Write him here:`;
+                        text = `Steam Guard Code:`;
                     }
                 }
                 new Logger(`(${this.account.account_name}) ${codeAction}`, "log");
@@ -116,29 +97,73 @@ class AddGuard {
         rCode = rCode.replace('R', '');
         this.community.disableTwoFactor('R' + rCode, (err) => {
             if (err) {
-                
-                new Logger(`(${this.account.account_name}) ${err.message}`, "error");
+                new Logger(`(${this.account.account.account_name}) ${err.message}`, "error");
                 return;
             }
             
-            new Logger(`(${this.account.account_name}) Two-factor authentication disabled!`, "log");
-           
-            let file_path = path.join(__dirname, '../../maFiles', this.account.account.maFileName);
-            if(FS.existsSync(file_path)) FS.unlinkSync(file_path);
+            new Logger(`(${this.account.account.account_name}) Two-factor authentication disabled!`, "log");
+            try {
+                let file_path = path.join(__dirname, '../../maFiles', this.account.account.maFileName||`${this.session.steamID.getSteamID64()}.maFile`);
+                if(FS.existsSync(file_path)) FS.unlinkSync(file_path);
+            } catch (error) {
+
+                new Logger(error.message, "error");
+            }
+            
             this.callback("disabled");
         });
     }
     async doSetup() {
         try {
             await new Promise((resolve, reject) => {
-                
+
                 this.community.enableTwoFactor(async (err, response) => {
                     if (err) {
                         if (err.eresult == EResult.Fail) {
-                            
-                            await this.waitForInput("Write your phone number: \n(An email will come to you and you need to click on it and bind the phone number)");
-                            //need add phone 
-                            return;
+                            if(!this.actionRequired) {
+                                let client = new SteamUser();
+                                await new Promise((resolve) => {
+                                    client.logOn({
+                                        "accountName": this.account.account.account_name,
+                                        "password": this.password
+                                    })
+                                    client.on('loggedOn', function(details) {
+                                        resolve();
+                                    });
+                                })
+                                if(!client.emailInfo.validated) {
+                                    client.requestValidationEmail((err)=> {
+                                        if(err) reject(err);
+                                    });
+                                    await this.waitForAccept("Confirm your email.");
+                                }
+                            }
+                            let phone_number = await this.waitForInput("Write your phone number:");
+                            let steamStore = new SteamStore();
+                            steamStore.setCookies(await this.session.getWebCookies());
+
+                            await new Promise(async (resolve,reject) => {
+                                let res = await new Promise((resolve, reject) => {
+                                    steamStore.addPhoneNumber(phone_number, true, async (err) => {
+
+                                        if(err) reject(err);
+                                        await this.waitForAccept("Confirm adding phone on email.")
+                                        resolve();
+                                    })
+                                });
+                                if(!res) {
+                                    steamStore.sendPhoneNumberVerificationMessage((err)=> {
+                                        if(err) reject(err);
+                                    })
+                                    let code = await this.waitForInput("Write code from your phone:");
+                                    steamStore.verifyPhoneNumber(code, (err)=> {
+                                        if(err) reject(err);
+                                        else resolve();
+                                    })
+                                }
+                                
+                            })
+                            return doSetup();
                         }
                         if(err.eresult == EResult.AccountLogonDeniedVerifiedEmailRequired) {
                             
@@ -175,7 +200,7 @@ class AddGuard {
                     this.account.maFileName = filename;
                     this.account.password = this.password;
                     this.account.account_name = this.account.getAccountName();
-                    saveAccount(this.account, this.community.steamID.getSteamID64())
+                    saveAccount(this.account, {steamId: this.community.steamID.getSteamID64()})
                     await this.promptActivationCode(response);
                     resolve();
                 });
@@ -218,6 +243,27 @@ class AddGuard {
         
         
     }
+    async waitForAccept(text) {
+        return new Promise((resolve,reject) => {
+            let id = generateUniqueId();
+            this.electron.notificationWindow.webContents.send("add-notification", {
+                id: id,
+                icon: `logo.ico`,
+                title: `${this.account.account.account_name}`,
+                withoutTimer: true,
+                message: text,
+                actions: [{data: 'accept', icon: 'check'}]
+            });
+            this.electron.ipcMain.on('data-notification', (event,data) => {
+                if(data.id != id) return;
+                if(data.data == 'accept') resolve(data.value);
+                else {
+                    this.session.cancelLoginAttempt();
+                    reject(new Error("You closed the window"));
+                }
+            })
+        });
+    }
     async waitForInput(text) {
         return new Promise((resolve,reject) => {
             /*
@@ -258,7 +304,7 @@ class AddGuard {
             this.electron.notificationWindow.webContents.send("add-notification", {
                 id: id,
                 icon: `logo.ico`,
-                title:`${this.account.account_name}`,
+                title: `${this.account.account.account_name}`,
                 type: 'input',
                 message: text,
                 actions: []

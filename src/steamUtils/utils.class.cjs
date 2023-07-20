@@ -60,9 +60,9 @@ const saveAccount = (account, ...props) => {
     let accounts = JSON.parse(fs.readFileSync(accountsFile, 'utf8'));
     let fAccount = accounts.find(acc => acc.account_name == account.account.account_name);
     
-    if(!fAccount) accounts.push({account_name: account.account.account_name , maFilePath: account.account.maFileName || steamId, password: account.account.password || "", display_name: account.account.display_name || "", proxy: account.account.proxy || "", guard: true});
+    if(!fAccount) accounts.push({account_name: account.account.account_name , maFileName: account.account.maFileName || `${steamId}.maFile`, password: account.account.password || "", display_name: account.account.display_name || "", proxy: account.account.proxy || "", guard: true});
     else {
-        fAccount = {...fAccount, account_name: account.account.account_name, password: account.account.password, display_name: account.account.display_name || "", proxy: account.account.proxy || "", guard: true};
+        fAccount = {...fAccount, account_name: account.account.account_name, password: account.account.password, display_name: account.account.display_name || "", proxy: account.account.proxy || "", guard: true, maFileName: account.account.maFileName || `${steamId}.maFile`};
         accounts[accounts.findIndex((acc)=> acc.account_name == fAccount.account_name)] = fAccount;
     }
     

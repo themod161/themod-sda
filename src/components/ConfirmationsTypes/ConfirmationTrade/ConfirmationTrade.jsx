@@ -18,23 +18,23 @@ export default function ConfirmationTrade({thisConfirmation, sets}) {
     const mainComponentOpponentRef = useRef();
  
     useEffect(()=> {
-        if(accountSession.account.auto_confirm) {
+        if(accountSession.account.auto_confirm_trades) {
             answerConfirmation(true);
         }
-        else {
-            const getTradeInfo = async () => {
-                let response = await accountSession.getTradeInfo(thisConfirmation.offerID);
-                if(response.error) return new Logger(response.error, "error");
-    
-                setTradeInfo(response);
-            }
-            getTradeInfo();
-            ipcRenderer.on('data-notification', (event, data) => {
-                if(thisConfirmation.id == data.id) answerConfirmation(data.data == "accept");
-            })
-            return () => {
-                ipcRenderer.off('data-notification', ()=> {});
-            }
+    }, [accountSession.account.auto_confirm_trades]);
+    useEffect(()=> {
+        const getTradeInfo = async () => {
+            let response = await accountSession.getTradeInfo(thisConfirmation.offerID);
+            if(response.error) return new Logger(response.error, "error");
+
+            setTradeInfo(response);
+        }
+        getTradeInfo();
+        ipcRenderer.on('data-notification', (event, data) => {
+            if(thisConfirmation.id == data.id) answerConfirmation(data.data == "accept");
+        })
+        return () => {
+            ipcRenderer.off('data-notification', ()=> {});
         }
     }, []);
     const openOpponentProfile = ()=> {
