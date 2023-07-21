@@ -14,6 +14,7 @@ import SettingsPage from './pages/Settings.page';
 import LoginPage from './pages/Login.page';
 import NotificationPage from './pages/Notification.page';
 import AppSettings from './pages/AppSettings.page';
+import { Footer } from './components/Footer/Footer';
 
 
 function App() {

@@ -3,6 +3,7 @@ import Account from './Account';
 import { useContext, useEffect, useState, useRef } from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import AccountsContext from '../../contexts/AccountsContext';
+import { savePositions } from '../../steamUtils/utils.class';
 
 export default function AccountsList() {
     let {accounts, setAccounts} = useContext(AccountsContext);
@@ -25,6 +26,7 @@ export default function AccountsList() {
         const dragItemContent = copyListItems[dragItem.current];
         copyListItems.splice(dragItem.current, 1);
         copyListItems.splice(dragOverItem.current, 0, dragItemContent);
+        savePositions(copyListItems);
         dragItem.current = null;
         dragOverItem.current = null;
         setAccountsList(copyListItems);

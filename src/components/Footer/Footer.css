@@ -1,0 +1,21 @@
+.footer-inner {
+    display: flex;
+    position: absolute;
+    font-size: 14px;
+    color: gray;
+    bottom: 0;
+    width: 100%;
+    justify-content: center;
+    padding: 5px;
+}
+.footer-app-version {
+    margin-left: 5px;
+}
+.footer-author, .footer-app-version {
+    cursor: pointer;
+    
+    transition: all .5s ease;
+}
+.footer-author:hover, .footer-app-version:hover {
+    color: lightgray;
+}

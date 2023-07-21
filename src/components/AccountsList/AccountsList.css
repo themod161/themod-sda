@@ -25,7 +25,7 @@
 }
 .accounts-list {
     margin-top: 10px;
-    max-height: calc(100vh - 230px);
+    max-height: calc(100vh - 270px);
     overflow: auto;
     background-color: rgba(59, 64, 76, 0.82);
     border-radius: 3px;

@@ -71,7 +71,9 @@ export default function Account({account, isDragOver, dragItem, dragStart, dragE
             >
             {isDragOver && isDragOver == index && isDragOver < dragItem.current ? <div className='account-drag-over-line'></div> : <></>}
             <div className={`account-wrapper nDragble${activeAccount?.getAccountName() == account.getAccountName() ? " active" : ""}${contextMenu ? ' opened' : ''}`} onDoubleClick={handleDoubleClick} onClick={handleClick} onContextMenu={handleContextMenu}>
-                <div className='account-left nSelected'>{account.account.display_name ||account.getAccountName()}
+                <div className='account-left nSelected'>
+                    {account.account.avatar_url ? <img src={account.account.avatar_url} draggable="false" /> : <></>}
+                    <span className="account-left-username">{account.account.display_name ||account.getAccountName()}</span>
                 </div>
                 <div className='account-right'>
                     <div className='account-right-button-open' onClick={()=> setContextMenu((prev)=> !prev)}>

@@ -337,7 +337,7 @@ class AddUser {
         try {
             this.account.proxy = this.account.proxy && parseProxy(this.account.proxy) ? new Proxy(parseProxy(this.account.proxy)) : "";
             let login = this.account.account_name || await this.waitForInput('Write login:');
-            this.password = this.account.password || await this.waitForInput(`Write password (${this.account.account_name}): `);
+            this.password = this.account.password || await this.waitForInput(`Write password: `);
             let password = this.password;
             if(this.account.proxy?.constructor?.name == "Proxy") {
                 let proxyObject = this.account.proxy;
@@ -359,7 +359,12 @@ class AddUser {
                     this.account.guard.Session.RefreshToken = refreshToken;
                 }
                 
-
+                this.account.avatar_url = await new Promise((resolve, reject) => {
+                    this.community.getSteamUser(this.community.steamID, (err, user) => {
+                        if(err) return resolve("");
+                        resolve(user.getAvatarURL())
+                    })
+                }) 
                 this.account.proxy = this.account.proxy ? this.account.proxy.constructor.name == "Proxy" ? this.account.proxy.getProxyToSave() : this.account.proxy : this.account.proxy;
                 this.account.password = this.password;
                 this.account.maFileName = `${this.community.steamID.getSteamID64()}.maFile`;
@@ -394,7 +399,7 @@ class AddUser {
                     await this.session.submitSteamGuardCode(SteamTotp.generateAuthCode(this.account.guard.shared_secret));
                 }
                 else {
-                    let code = await this.waitForInput(`Enter a ${codeAction.type == SteamSession.EAuthSessionGuardType.DeviceCode ? 'Steam Guard Mobile Authenticator code' : 'code from your email'} (${this.account.account_name}): `);
+                    let code = await this.waitForInput(`Enter a ${codeAction.type == SteamSession.EAuthSessionGuardType.DeviceCode ? 'Steam Guard Mobile Authenticator code' : 'code from your email'}: `);
                     if (code) {
                         await this.session.submitSteamGuardCode(code);
                     }

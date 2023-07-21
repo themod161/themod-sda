@@ -28,20 +28,39 @@ export const getMaFiles = (dir = maFilesPath) => {
 
     return accounts;
 };
+export const savePositions = (clients) => {
+    let accounts = [];
+    if (!fs.existsSync(maFilesPath)) {
+        fs.mkdirSync(maFilesPath);
+    }
+    if (!fs.existsSync(accountsFile)) {
+        fs.writeFileSync(accountsFile, JSON.stringify([]));
+    }
+    else {
+        let data = fs.readFileSync(accountsFile, 'utf8');
+        accounts = JSON.parse(data);
+    }
+    console.log(clients);
+    clients.forEach((x,ind)=> {
+        let acc = accounts.find(y => y.account_name == x.getAccountName());
+        if(acc) acc.position = ind;
+    })
+    fs.writeFileSync(accountsFile, JSON.stringify(accounts, null, '\t'));
+}
 export const saveAccount = (account, props = {}) => {
     let update = props.update;
     let steamId = props.steamId;
     let accounts = JSON.parse(fs.readFileSync(accountsFile, 'utf8'));
     let fAccount = accounts.find(acc => acc.account_name === account.account.account_name);
     
-    if(!fAccount) accounts.push({account_name: account.account.account_name , maFilePath: account.account.maFilePath, password: account.account.password || "", display_name: account.account.display_name || "", proxy: account.account.proxy || "", auto_confirm_market: account.account.auto_confirm_market || false, auto_confirm_trades: account.account.auto_confirm_trades || false, guard: true});
+    if(!fAccount) accounts.push({account_name: account.account.account_name , maFileName: account.account.maFileName || `${steamId}.maFile`, password: account.account.password || "", display_name: account.account.display_name || "", proxy: account.account.proxy || "", auto_confirm_market: account.account.auto_confirm_market || false, auto_confirm_trades: account.account.auto_confirm_trades || false, position: accounts.length, guard: true});
     else {
         fAccount = {...fAccount, ...account.account, guard: true};
         accounts[accounts.findIndex((acc)=> acc.account_name === fAccount.account_name)] = fAccount;
     }
     
     if(account.account.guard && update) {
-        let file_path = path.join(maFilesPath, account.account.maFilePath || `${steamId}.maFile`);
+        let file_path = path.join(maFilesPath, account.account.maFileName || `${steamId}.maFile`);
         fs.writeFileSync(file_path, JSON.stringify(account.account.guard, null, '\t'));
     }
     let saveAccountsFile = (data)=> fs.writeFileSync(accountsFile, JSON.stringify(data, null, '\t'));
@@ -106,7 +125,7 @@ export const getAccounts = async () => {
     });
     fs.writeFileSync(accountsFile, JSON.stringify(accounts, null, '\t'));
 
-    accounts = accounts.map(x=> {
+    accounts = accounts.sort((a,b) => a.position - b.position).map(x=> {
         let acc = maFiles.find(y=> y.file === x.maFileName);
         
         if(!acc) acc = maFiles.find(y=> y.data.account_name === x.account_name);

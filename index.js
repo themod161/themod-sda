@@ -153,6 +153,12 @@ ipcMain.on('add-notification', (event,data)=> {
         }
     }
 });
+
+ipcMain.handle('getAppVersion', ()=> {
+    return app.getVersion();
+})
+
+
 ipcMain.on('toggle-guard', async (event, account) => {
     if(steamGuardWindow) return;
     account = await new Client().restore(JSON.parse(account));

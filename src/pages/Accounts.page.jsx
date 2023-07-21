@@ -7,6 +7,7 @@ import AccountContext from '../contexts/AccountContext';
 import { addNotify } from '../components/Notify/Notify';
 import ContextMenuContext from '../contexts/ContextMenuContext';
 import AccountsContext from '../contexts/AccountsContext';
+import { Footer } from '../components/Footer/Footer';
 
 const {ipcRenderer} = window.require('electron');
 
@@ -16,6 +17,7 @@ export default function Accounts() {
   const [contextMenu, setContextMenu] = useState(undefined);
   let loadAccounts = async (needChangeActiveAcc = false) => {
     let accounts = await getAccounts();
+    console.log(accounts);
     setAccounts(accounts);
     if(needChangeActiveAcc || (!activeAccount && accounts.length > 0)) setActiveAccount(accounts[0]); 
     else if(accounts.find(x=> x.getAccountName() !== activeAccount?.getAccountName())) setActiveAccount(accounts[0] || undefined);
@@ -38,6 +40,7 @@ export default function Accounts() {
           <ToolBar/>
           <SteamGuard/>
           <AccountsList accounts={accounts}/>
+          <Footer />
         </ContextMenuContext.Provider>
       </AccountContext.Provider>
     </AccountsContext.Provider>
