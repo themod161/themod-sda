@@ -5,7 +5,6 @@ import { ArrowBack } from '@mui/icons-material';
 import ClientContext from '../../../contexts/ClientContext';
 import TradeItem from '../../TradeItem/TradeItem';
 import { addNotify } from '../../Notify/Notify';
-import Logger from '../../../steamUtils/logger.class';
 
 const electron = window.require('electron');
 const {ipcRenderer} = electron;
@@ -18,14 +17,14 @@ export default function ConfirmationTrade({thisConfirmation, sets}) {
     const mainComponentOpponentRef = useRef();
  
     useEffect(()=> {
-        if(accountSession.account.auto_confirm_trades) {
+        if(accountSession.auto_confirm_trades) {
             answerConfirmation(true);
         }
-    }, [accountSession.account.auto_confirm_trades]);
+    }, [accountSession.auto_confirm_trades]);
     useEffect(()=> {
         const getTradeInfo = async () => {
-            let response = await accountSession.getTradeInfo(thisConfirmation.offerID);
-            if(response.error) return new Logger(response.error, "error");
+            let response = await ipcRenderer.invoke('get-trade-info', {offerId: thisConfirmation.offerID, account_name: accountSession.account_name});
+            if(response.error) return ipcRenderer.send('logger',response.error, "error");
 
             setTradeInfo(response);
         }
@@ -38,20 +37,21 @@ export default function ConfirmationTrade({thisConfirmation, sets}) {
         }
     }, []);
     const openOpponentProfile = ()=> {
-        electron.shell.openExternal(`https://steamcommunity.com/profiles/${tradeInfo.partner.getSteamID64()}/`)
+        console.log(tradeInfo);
+        electron.shell.openExternal(`https://steamcommunity.com/profiles/${tradeInfo.partner.steamID64}/`)
     }
     const answerConfirmation = async (value = false) => {
         if(processStatus) return addNotify(`Wait for response!`, 'info');
         setProcessStatus(true);
         try {
-            let response = await accountSession.answerToConfirmation(thisConfirmation.id, thisConfirmation.key, value);
+            let response = await ipcRenderer.invoke('answer-to-confirmation', accountSession.account_name, thisConfirmation.id, thisConfirmation.key, value);
             addNotify(response, 'success');
-            new Logger(`(${accountSession.getAccountName()}) ${response}`, "log");
+            ipcRenderer.send('logger',`(${accountSession.account_name}) ${response}`, "log");
             ipcRenderer.send('remove-notification', thisConfirmation.id);
             sets((prev)=> [...prev.filter(x=> x.id !== thisConfirmation.id)]);
             setProcessStatus(false);
         } catch (error) {
-            new Logger(`(${accountSession.getAccountName()}) {CONF TRADE} ${error.message}`, "error");
+            ipcRenderer.send('logger',`(${accountSession.account_name}) {CONF TRADE} ${error.message}`, "error");
             addNotify(error.message, 'error');
         }
     };
@@ -82,7 +82,7 @@ export default function ConfirmationTrade({thisConfirmation, sets}) {
                 <div className="confirmation-items-inner">
                     <div className='confirmation-items-left'>
                         <div className='items-inner' ref={mainComponentRef}>
-                            {(tradeInfo?.itemsToGive ? tradeInfo.itemsToGive : []).map((item, i) => <TradeItem key={item.id} mainComponentRef={mainComponentRef} item={item} index={i} partner={accountSession.community.steamID}/>)}
+                            {(tradeInfo?.itemsToGive ? tradeInfo.itemsToGive : []).map((item, i) => <TradeItem key={item.id} mainComponentRef={mainComponentRef} item={item} index={i} partner={accountSession.guard.Session.SteamID}/>)}
                         </div>
                     </div>
                     <div className='confirmation-items-line'></div>

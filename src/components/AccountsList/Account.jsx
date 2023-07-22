@@ -1,13 +1,11 @@
 import { useContext, useEffect, useState } from 'react';
 import './Account.css';
 import AccountContext from '../../contexts/AccountContext';
-import LoginStatus from '../LoginStatus/LoginStatus';
 import { addNotify } from '../Notify/Notify';
 import CustomContextMenu from '../ContextMenu/ContextMenu';
 import ContextMenuContext from '../../contexts/ContextMenuContext';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
+import { ExpandLess, ExpandMore, Refresh } from '@mui/icons-material';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import { removeAccount } from '../../steamUtils/utils.class';
 import AccountsContext from '../../contexts/AccountsContext';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -28,20 +26,25 @@ export default function Account({account, isDragOver, dragItem, dragStart, dragE
     const handleMenuItemClick = (menuItem) => {
         switch(menuItem) {
             case 0: {
-                if(!account.account.guard) return addNotify(`First you need to add maFile (steam guard)`, 'info');
-                electron.ipcRenderer.send('open-account-confirmations', account.stringify());
+                console.log(account);
+                if(!account.guard) return addNotify(`First you need to add maFile (steam guard)`, 'info');
+                electron.ipcRenderer.send('open-account-confirmations', account);
                 return;
             }
             case 1: {
-                return electron.ipcRenderer.send('toggle-guard', account.stringify());    
+                return electron.ipcRenderer.send('toggle-guard', account);    
             }
             case 2: {
-                return electron.ipcRenderer.send('open-account-settings', account.stringify());
+                return electron.ipcRenderer.send('re-login', account);
             }
+            
             case 3: {
-                removeAccount(account.getAccountName());
+                return electron.ipcRenderer.send('open-account-settings', account);
+            }
+            case 4: {
+                ipcRenderer.send('remove-account', account.account_name);
                 setActiveAccount(undefined);
-                return electron.ipcRenderer.send('need-load-accounts', account.stringify());    
+                return electron.ipcRenderer.send('need-load-accounts');    
 
             }
             default: return;
@@ -49,8 +52,8 @@ export default function Account({account, isDragOver, dragItem, dragStart, dragE
     };
 
     const handleDoubleClick = ()=> {
-        if(!account.account.guard) return addNotify(`First you need to add maFile (steam guard)`, 'info');
-        electron.ipcRenderer.send('open-account-confirmations', account.stringify());
+        if(!account.guard) return addNotify(`First you need to add maFile (steam guard)`, 'info');
+        electron.ipcRenderer.send('open-account-confirmations', account);
     }
     const handleStartDrag = (e) => {
         dragStart(e, index);
@@ -59,7 +62,7 @@ export default function Account({account, isDragOver, dragItem, dragStart, dragE
         dragEnter(e, index);
     }
     const handleClick = () => {
-        if(activeAccount?.getAccountName() != account.getAccountName()) setActiveAccount(account);
+        if(activeAccount?.account_name != account.account_name) setActiveAccount(account);
     }
     return <>
         <div className={'account-inner'} 
@@ -70,10 +73,10 @@ export default function Account({account, isDragOver, dragItem, dragStart, dragE
             drag="true"
             >
             {isDragOver && isDragOver == index && isDragOver < dragItem.current ? <div className='account-drag-over-line'></div> : <></>}
-            <div className={`account-wrapper nDragble${activeAccount?.getAccountName() == account.getAccountName() ? " active" : ""}${contextMenu ? ' opened' : ''}`} onDoubleClick={handleDoubleClick} onClick={handleClick} onContextMenu={handleContextMenu}>
+            <div className={`account-wrapper nDragble${activeAccount?.account_name == account.account_name ? " active" : ""}${contextMenu ? ' opened' : ''}`} onDoubleClick={handleDoubleClick} onClick={handleClick} onContextMenu={handleContextMenu}>
                 <div className='account-left nSelected'>
-                    {account.account.avatar_url ? <img src={account.account.avatar_url} draggable="false" /> : <></>}
-                    <span className="account-left-username">{account.account.display_name ||account.getAccountName()}</span>
+                    {account.avatar_url ? <img src={account.avatar_url} draggable="false" /> : <></>}
+                    <span className="account-left-username">{account.display_name ||account.account_name}</span>
                 </div>
                 <div className='account-right'>
                     <div className='account-right-button-open' onClick={()=> setContextMenu((prev)=> !prev)}>
@@ -85,7 +88,7 @@ export default function Account({account, isDragOver, dragItem, dragStart, dragE
             <TransitionGroup>
                 {contextMenu ? (<CSSTransition timeout={500} classNames="account"><CustomContextMenu
                 onMenuItemClick={handleMenuItemClick}
-                items={[{text: 'Open confirmations', icon: <ListIcon />}, {text: `${account?.account.guard ? "Remove" : "Add"} Guard`, icon: <SecurityIcon />}, {text: "Settings", icon: <SettingsIcon />}, {text: "Exit", icon:<LogoutIcon />}]}
+                items={[{text: 'Open confirmations', icon: <ListIcon />}, {text: `${account?.guard ? "Remove" : "Add"} Guard`, icon: <SecurityIcon />},{text: `Re-login`, icon: <Refresh/>}, {text: "Settings", icon: <SettingsIcon />}, {text: "Exit", icon:<LogoutIcon />}]}
                 /></CSSTransition>) : <></>}
             </TransitionGroup>
             {isDragOver && isDragOver == index && isDragOver >= dragItem.current ? <div className='account-drag-over-line'></div> : <></>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Proxy, parseProxy } from '../steamUtils/proxy.class';
+
 import PersonIcon from '@mui/icons-material/Person';
 import './Settings.page.css'
 import TextInput from '../components/TextInput/TextInput';
@@ -11,7 +11,6 @@ import { addNotify } from '../components/Notify/Notify';
 import { Navigate } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip'
 import 'react-tooltip/dist/react-tooltip.css'
-import Logger from '../steamUtils/logger.class.js';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -38,7 +37,7 @@ export default function LoginPage() {
         return false;
     }
     const toSave = () => ({account_name: accData.account_name, password: accData.password, proxy: accData.proxy, display_name: accData.display_name})
-    const doRequest = async(proxyString) => {
+    /*const doRequest = async(proxyString) => {
         try {
             setCheckProxyStatus(`Pending`);
             let prClass = new Proxy(parseProxy(proxyString));
@@ -74,7 +73,7 @@ export default function LoginPage() {
         }));
         setCheckProxyStatus(false);
         accData.proxy = "";
-    }
+    }*/
 
     const formatIp = (input) => {
         let value = input;
@@ -141,8 +140,8 @@ export default function LoginPage() {
             </div>
                 
             <hr />
-            <TextComponent title={"Reset proxy:"} value={<div onClick={clearProxy} className='check-proxy-button'>Reset proxy</div>}/>
-            <TextComponent title={"Check proxy:"} value={<div onClick={canCheckProxy} className='check-proxy-button' disabled={checkProxyStatus == "Pending"}>Check proxy</div>}/>
+            <TextComponent title={"Reset proxy:"} value={<div onClick={()=> {let clearProxy = 1}} className='check-proxy-button'>Reset proxy</div>}/>
+            <TextComponent title={"Check proxy:"} value={<div onClick={()=> {let canCheckProxy}} className='check-proxy-button' disabled={checkProxyStatus == "Pending"}>Check proxy</div>}/>
             {checkProxyStatus == false ? <></> : <TextComponent title={"Status:"} value={checkProxyStatus} /> }
             <SelectInput title={"Protocol:"} disabled={checkProxyStatus == "Pending"} value={accData.tempProxy.protocol} onChange={(e)=> changeField(e, ["tempProxy","protocol"])}/>
             <TextInput title={"IP:"} disabled={checkProxyStatus == "Pending"} onInput={(e)=> changeField(e, ["tempProxy","ip"])} maxLength={15} value={accData.tempProxy.ip} />

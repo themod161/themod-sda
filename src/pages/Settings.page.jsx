@@ -1,15 +1,11 @@
 import { useEffect, useState } from 'react';
-import Client from '../steamUtils/client.class';
-import { Proxy, parseProxy } from '../steamUtils/proxy.class';
 import PersonIcon from '@mui/icons-material/Person';
 import './Settings.page.css'
 import TextInput from '../components/TextInput/TextInput';
 import HttpsIcon from '@mui/icons-material/Https';
 import SelectInput from '../components/SelectItem/SelectItem';
 import TextComponent from '../components/Text/Text';
-import { saveAccount } from '../steamUtils/utils.class.js';
 import { addNotify } from '../components/Notify/Notify';
-import Logger from '../steamUtils/logger.class';
 import ControlInput from '../components/ControlInput/ContolInput';
 
 const { ipcRenderer } = window.require('electron');
@@ -21,20 +17,39 @@ export default function SettingsPage() {
     let [checkProxyStatus, setCheckProxyStatus] = useState(false);
     useEffect(() => {
         ipcRenderer.on('account-load', async (event, account) => {
-            account = await new Client({}).restore(JSON.parse(account));
             setActiveAccount(account);
             setAccData({
-                account_name: account.getAccountName(),
-                password: account.account.password || "",
-                proxy: account.account.proxy ||"",
-                display_name: account.account.display_name || "",
-                auto_confirm_market: account.account.auto_confirm_market || false,
-                auto_confirm_trades: account.account.auto_confirm_trades || false,
-                tempProxy: parseProxy(account.account.proxy || "") || {protocol: undefined, ip: undefined, port: undefined, username: undefined, password: undefined}
+                account_name: account.account_name,
+                password: account.password || "",
+                proxy: account.proxy ||"",
+                display_name: account.display_name || "",
+                auto_login: account.auto_login || false,
+                auto_confirm_market: account.auto_confirm_market || false,
+                auto_confirm_trades: account.auto_confirm_trades || false,
+                tempProxy: parseProxy(account.proxy || "") || {protocol: undefined, ip: undefined, port: undefined, username: undefined, password: undefined}
             })
         });
     }, []);
-
+    const parseProxy = (proxyString) => {
+        const proxyRegex = /^(socks|http)s?:\/\/(?:([^:@]+):([^:@]+)@)?([^:]+):(\d+)$/i;
+        
+        if(proxyString.length === 0 || Object.keys(proxyString).length === 0) return "";
+        const match = proxyString.match(proxyRegex);
+        
+        if (!match) {
+          throw new Error('Invalid proxy string');
+        }
+      
+        const [, protocol, username, password, ip, port] = match;
+        return {
+          protocol: protocol.toLowerCase(),
+          username: username || undefined,
+          password: password || undefined,
+          ip,
+          port: parseInt(port, 10),
+          string: proxyString
+        };
+    }
     const checkForProxy = () => {
         let proxy = accData.tempProxy;
         if(!proxy.protocol) proxy.protocol = 'http';
@@ -44,28 +59,31 @@ export default function SettingsPage() {
         }
         return false;
     }
-    const toSave = () => ({account_name: accData.account_name, password: accData.password, proxy: accData.proxy, auto_confirm_market: accData.auto_confirm_market, auto_confirm_trades: accData.auto_confirm_trades, display_name: accData.display_name})
+    const toSave = () => ({account_name: accData.account_name, password: accData.password, proxy: accData.proxy, auto_login: accData.auto_login, auto_confirm_market: accData.auto_confirm_market, auto_confirm_trades: accData.auto_confirm_trades, display_name: accData.display_name})
     const doRequest = async(proxyString) => {
         try {
             setCheckProxyStatus(`Pending`);
-            let prClass = new Proxy(parseProxy(proxyString));
-            let proxy = await prClass.testProxy();
+            let proxy = await ipcRenderer.invoke('check-proxy', proxyString);
+            console.log(proxy);
+            if(typeof proxy == 'object') throw new Error(proxy.error);
             if(proxy) {
                 setAccData((prev)=>({
                     ...prev,
-                    proxy: prClass.proxy
+                    proxy: proxyString
                 }));
-                accData.proxy = prClass.proxy;
+                accData.proxy = proxyString;
                 saveAcc();
-                setCheckProxyStatus(`Ok (${proxy})`);
-                new Logger(`(PROXY RESPONSE ${activeAccount.getAccountName()}) Ok (${proxy})`, "log");
+                setCheckProxyStatus(`Ok (${proxy}). Proxy saved`);
+                ipcRenderer.send('logger',`(PROXY RESPONSE ${activeAccount.account_name}) Ok (${proxy})`, "log");
             }
         } catch (error) {
-            new Logger(`(CHECK PROXY ${activeAccount.getAccountName()}) ${error.message}`, "error");
+            error.message = error.message.replace("Error invoking remote method 'check-proxy': ", '');
+            ipcRenderer.send('logger',`(CHECK PROXY ${activeAccount.account_name}) ${error.message}`, "error");
             setCheckProxyStatus(error.message);
         }
     }  
     const canCheckProxy = () => {
+        if(checkProxyStatus === "Pending") return;
         let result = checkForProxy();
         if(!result){
             addNotify("Not valid proxy format", "warning");
@@ -76,12 +94,11 @@ export default function SettingsPage() {
     }
     const saveAcc = () => {
         
-        activeAccount.account = {
-            ...activeAccount.account,
+        activeAccount = {
+            ...activeAccount,
             ...toSave()
         }
-        saveAccount(activeAccount);
-        ipcRenderer.send('update-account-by-username', activeAccount.stringify());
+        ipcRenderer.send('update-account-by-username', activeAccount);
     }
 
     const clearProxy = () => {
@@ -130,11 +147,11 @@ export default function SettingsPage() {
     } 
     useEffect(()=> {
         if(Object.keys(accData).length !== 0 && activeAccount) saveAcc();
-    }, [accData.auto_confirm_trades, accData.auto_confirm_market]);
+    }, [accData.auto_confirm_trades, accData.auto_confirm_market, accData.auto_login]);
     if (Object.keys(accData).length === 0 && !activeAccount) return <>Loading...</>;
     return (
         <div className='settings-page-inner nDragble nSelected'>
-            <h2>Settings {activeAccount.getAccountName()}</h2>
+            <h2>Settings {activeAccount.account_name}</h2>
             <div className='settings-page-title'><h3><PersonIcon/> Account</h3></div>
             <hr/>
             <TextInput title={"Login:"} onComplete={saveAcc} onInput={(e)=> changeField(e, "account_name")} disabled={true} value={accData.account_name} />
@@ -146,6 +163,9 @@ export default function SettingsPage() {
             <ControlInput title={"Trades auto-confirm:"} onChange={(e)=> {
                 changeField({target: {value: !accData.auto_confirm_trades}}, "auto_confirm_trades");
             }} value={accData.auto_confirm_trades} />
+            <ControlInput title={"Auto-login:"} onChange={(e)=> {
+                changeField({target: {value: !accData.auto_login}}, "auto_login");
+            }} value={accData.auto_login} />
             <div className='settings-page-title'><h3><HttpsIcon/> Proxy</h3></div>
             <hr />
             <TextComponent title={"Reset proxy:"} value={<div onClick={clearProxy} className='check-proxy-button'>Reset proxy</div>}/>

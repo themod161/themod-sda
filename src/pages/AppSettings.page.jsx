@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react';
-import Client from '../steamUtils/client.class';
-import { Proxy, parseProxy } from '../steamUtils/proxy.class';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import './Settings.page.css'
 import TextInput from '../components/TextInput/TextInput';
 import TextComponent from '../components/Text/Text';
-import { setSettings } from '../steamUtils/utils.class.js';
-import Logger from '../steamUtils/logger.class';
 
 const { ipcRenderer } = window.require('electron');
 
@@ -22,8 +18,7 @@ export default function AppSettings() {
         });
     }, []);
     const saveAppSettings = () => {
-        setSettings(appData);
-        ipcRenderer.send('update-app-settings');
+        ipcRenderer.send('update-app-settings', appData);
     }
 
     const changeField = (e, field) => {

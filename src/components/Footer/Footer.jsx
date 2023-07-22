@@ -14,15 +14,20 @@ export function Footer() {
             setAppVersion(`v${res}`);
         }
         const checkForLastVersion = async () => {
-            let res = await new Promise((resolve,reject) => {
-                request('https://github.com/themod161/themod-sda/releases/latest', (error, response) => {
-                    if (error) return reject(error);
-                    let r = response.request.href.match(/(?<version>[0-9.]+)$/m);
-                    if(r) return resolve(r.groups.version);
-                    return resolve(response.request.href);
-                });
-            })
-            setLastVersion(`v${res}`);
+            try {
+                let res = await new Promise((resolve,reject) => {
+                    request('https://github.com/themod161/themod-sda/releases/latest', (error, response) => {
+                        if (error) return reject(error);
+                        let r = response.request.href.match(/(?<version>[0-9.]+)$/m);
+                        if(r) return resolve(r.groups.version);
+                        return resolve(response.request.href);
+                    });
+                })
+                setLastVersion(`v${res}`);
+            } catch (error) {
+                ipcRenderer.send('logger', `{VERSION} get last version: ${error.message}`, 'error');
+            }
+           
         }
         getAppVersion();
         checkForLastVersion();
@@ -42,6 +47,6 @@ export function Footer() {
     const openGithub = () => {
         shell.openExternal('https://github.com/themod161/themod-sda/releases/latest');
     }
-    console.log(appVersion && lastVersion && compareVersions(lastVersion, appVersion) ? '*' : '', appVersion, lastVersion, appVersion && lastVersion && compareVersions(lastVersion, appVersion));
+    //console.log(appVersion && lastVersion && compareVersions(lastVersion, appVersion) ? '*' : '', appVersion, lastVersion, appVersion && lastVersion && compareVersions(lastVersion, appVersion));
     return <div className="footer-inner nDragble nSelected"><span className="footer-author" onClick={openTelegram}>THEMOD &copy;</span><span className="footer-app-version" onClick={openGithub}>{appVersion}{appVersion && lastVersion && compareVersions(lastVersion, appVersion) ? '*' : ''}</span></div>;
 }

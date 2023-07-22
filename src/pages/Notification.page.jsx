@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Notification from '../components/Notifications/Notification';
 import './Notifications.page.css';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
-import Logger from '../steamUtils/logger.class';
 const { ipcRenderer } = window.require('electron');
 export default function NotificationPage() {
     const [notifications, setNotifications] = useState([]);
@@ -10,12 +9,12 @@ export default function NotificationPage() {
     const [visible, setVisible] = useState(false);
     const [musicsPlayed, setMusicsPlayed] = useState([]);
     window.addNotificationHandler = (event, data) => {
-        new Logger("New notification", "log");
-            setNotifications(prevNotifications => [...prevNotifications, data]);
+        ipcRenderer.send('logger',"New notification", "log");
+        setNotifications(prevNotifications => [...prevNotifications, data]);
     }
     useEffect(() => {
         const addNotificationHandler = (event, data) => {
-            new Logger("New notification", "log");
+            ipcRenderer.send('logger',"New notification", "log");
             setNotifications(prevNotifications => [...prevNotifications, data]);
         };
         const removeNotificationHandler = (event, data) => {

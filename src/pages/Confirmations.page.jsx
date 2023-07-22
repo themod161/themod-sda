@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Client from '../steamUtils/client.class';
 import Confirmations from '../components/Confirmations/Confirmations';
 import ClientContext from '../contexts/ClientContext';
 const {ipcRenderer} = window.require('electron');
@@ -8,11 +7,9 @@ export default function ConfirmationsPage() {
   let [accountSession, setAccountSession] = useState({});
   useEffect(()=> {
     ipcRenderer.on('account-load', async (event, account) => {
-        account = await new Client({}).restore(JSON.parse(account));
         setAccountSession(account);
     });
     ipcRenderer.on('update-account-by-username', async (event, account) => {
-      account = await new Client({}).restore(JSON.parse(account));
       setAccountSession(account);
     });
   }, []);

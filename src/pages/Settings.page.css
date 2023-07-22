@@ -12,7 +12,11 @@ label {
     scrollbar-width: thin; 
     scrollbar-color: #bbb transparent; 
 }
+.text-input-stable-edit {
+  
+  text-align: end;
 
+}
 .check-proxy-button {
   padding: 3px 20px;
   background-color: rgb(40, 44, 52, 0.8);

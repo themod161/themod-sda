@@ -36,14 +36,14 @@ class AddGuard {
         this.onError = onError;
         
         try {
-            let login = this.account.account.account_name || await this.waitForInput('Write login:');
-            this.password = this.account.account.password || await this.waitForInput('Write password:');
+            let login = this.account.account_name || await this.waitForInput('Write login:');
+            this.password = this.account.password || await this.waitForInput('Write password:');
             let password = this.password;
-            if(this.account.account.proxy?.constructor?.name == "Proxy") {
-                let proxyObject = this.account.account.proxy;
+            if(this.account.proxy?.constructor?.name == "Proxy") {
+                let proxyObject = this.account.proxy;
                 let options = {};
-                if(proxyObject.isSocks()) options = {socksProxy: this.account.account.proxy.getProxyUrl()}
-                else options = {httpProxy: this.account.account.proxy.getProxyUrl()};
+                if(proxyObject.isSocks()) options = {socksProxy: this.account.proxy.getProxyUrl()}
+                else options = {httpProxy: this.account.proxy.getProxyUrl()};
                 this.session = new SteamSession.LoginSession(SteamSession.EAuthTokenPlatformType.MobileApp, options);
             }
 
@@ -97,13 +97,13 @@ class AddGuard {
         rCode = rCode.replace('R', '');
         this.community.disableTwoFactor('R' + rCode, (err) => {
             if (err) {
-                new Logger(`(${this.account.account.account_name}) ${err.message}`, "error");
+                new Logger(`(${this.account.account_name}) ${err.message}`, "error");
                 return;
             }
             
-            new Logger(`(${this.account.account.account_name}) Two-factor authentication disabled!`, "log");
+            new Logger(`(${this.account.account_name}) Two-factor authentication disabled!`, "log");
             try {
-                let file_path = path.join(__dirname, '../../maFiles', this.account.account.maFileName||`${this.session.steamID.getSteamID64()}.maFile`);
+                let file_path = path.join(__dirname, '../../maFiles', this.account.maFileName||`${this.session.steamID.getSteamID64()}.maFile`);
                 if(FS.existsSync(file_path)) FS.unlinkSync(file_path);
             } catch (error) {
 
@@ -124,7 +124,7 @@ class AddGuard {
                                 let client = new SteamUser();
                                 await new Promise((resolve) => {
                                     client.logOn({
-                                        "accountName": this.account.account.account_name,
+                                        "accountName": this.account.account_name,
                                         "password": this.password
                                     })
                                     client.on('loggedOn', function(details) {
@@ -163,7 +163,7 @@ class AddGuard {
                                 }
                                 
                             })
-                            return doSetup();
+                            return this.doSetup();
                         }
                         if(err.eresult == EResult.AccountLogonDeniedVerifiedEmailRequired) {
                             
@@ -188,18 +188,20 @@ class AddGuard {
                     
                     response.device_id = SteamTotp.getDeviceID(this.community.steamID.getSteamID64());
                     response.Session = {};
-                    this.cookies.forEach(cookie=> {
+                    /*this.cookies.forEach(cookie=> {
                         let key = cookie.split('=')[0];
                         let value = cookie.split('=')[1];
                         key = key.charAt(0).toUpperCase() + key.slice(1);
                         response.Session[key] = value;
-                    });
+                    });*/
                     response.Session.SteamID = this.community.steamID.getSteamID64();
+                    response.Session.AccessToken = this.session.accessToken;
+                    response.Session.RefreshToken = this.session.refreshToken;
                     
                     FS.writeFileSync(path.join(__dirname, '../../maFiles', filename), JSON.stringify(response, null, '\t'));
                     this.account.maFileName = filename;
                     this.account.password = this.password;
-                    this.account.account_name = this.account.getAccountName();
+                    this.account.account_name = this.account.account_name;
                     saveAccount(this.account, {steamId: this.community.steamID.getSteamID64()})
                     await this.promptActivationCode(response);
                     resolve();
@@ -222,7 +224,7 @@ class AddGuard {
                     if (err) {
                         if (err.message == 'Invalid activation code') {
                             
-                            promptActivationCode(response);
+                            this.promptActivationCode(response);
                             return;
                         }
                         return reject(err);
@@ -249,7 +251,7 @@ class AddGuard {
             this.electron.notificationWindow.webContents.send("add-notification", {
                 id: id,
                 icon: `logo.ico`,
-                title: `${this.account.account.account_name}`,
+                title: `${this.account.account_name}`,
                 withoutTimer: true,
                 message: text,
                 actions: [{data: 'accept', icon: 'check'}]
@@ -304,7 +306,7 @@ class AddGuard {
             this.electron.notificationWindow.webContents.send("add-notification", {
                 id: id,
                 icon: `logo.ico`,
-                title: `${this.account.account.account_name}`,
+                title: `${this.account.account_name}`,
                 type: 'input',
                 message: text,
                 actions: []

@@ -4,7 +4,6 @@
     margin-top: 0;
     padding-top: 0;
     padding: 10px;
-    
     background-color: rgba(40, 44, 52);
     font-size: 16px;
     border-radius: 5px;
@@ -12,20 +11,24 @@
     border-top: none;
     border-top-right-radius: 0;
     text-align: center;
-    
+    display: flex;
+    flex-wrap: wrap;
 }
 .context-menu-inner div {
     margin: 5px;
     padding: 5px;
     border-radius: 5px;
     display: flex;
-    border: 1px solid rgba(59, 64, 76, 0.82);
-    justify-content: center;
-    transition: all .5s;
-}
-.context-menu-inner div:hover {
+    align-items: center;
     border: 1px solid rgba(40, 44, 52);
     background-color: rgba(59, 64, 76);
+    justify-content: center;
+    transition: all .5s;
+    flex: 1 0 calc(50% - 50px);
+}
+.context-menu-inner div:hover {
+  border: 1px solid rgba(59, 64, 76, 0.82);
+    background-color: transparent;
 }
 .context-menu-inner div svg {
   margin-left: 5px;

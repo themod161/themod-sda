@@ -104,7 +104,7 @@ export default function TradeItem({item, index, mainComponentRef, mainComponentO
     let TradeItemRef = useRef();
     if(!mainComponentRef && mainComponentOpponentRef) mainComponentRef = mainComponentOpponentRef;
     const openItem = () => {
-        electron.shell.openExternal(`https://steamcommunity.com/profiles/${partner.getSteamID64()}/inventory/#${item.appid}_${item.contextid}_${item.id}`)
+        electron.shell.openExternal(`https://steamcommunity.com/profiles/${typeof partner == "string" ? partner : partner.steamID64}/inventory/#${item.appid}_${item.contextid}_${item.id}`)
     }
     return <>
         <div className={`item-inner${item.market_hash_name.toLowerCase().includes('rmr') ? ' holo-effect' : ''}`} ref={TradeItemRef} onClick={openItem}>

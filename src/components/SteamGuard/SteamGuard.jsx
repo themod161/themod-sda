@@ -16,7 +16,7 @@ export default function SteamGuard() {
 
     useEffect(()=> {
       if(!activeAccount) return;
-      let s_key = activeAccount.getSharedSecret();
+      let s_key = activeAccount.guard?.shared_secret ;
       if(!s_key) return setSteamGuardCode("-----");
       const code = SteamTotp.generateAuthCode(s_key);
       setSteamGuardCode(code);
@@ -24,7 +24,7 @@ export default function SteamGuard() {
 
     useEffect(()=> {
       const updateSteamGuardCode = () => {
-        let s_key = activeAccount ? activeAccount.getSharedSecret() : undefined;
+        let s_key = activeAccount ? activeAccount.guard?.shared_secret : undefined;
         if(!s_key) {
           setSecondsRemaining(steamOffset()-1);
           return setSteamGuardCode("-----");

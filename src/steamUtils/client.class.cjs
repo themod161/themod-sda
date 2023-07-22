@@ -10,10 +10,13 @@ const electron = require('electron');
 const crypto = require('crypto');
 const { BrowserWindow } = require('electron');
 const Logger = require('./logger.class.cjs');
+const {saveAccount} = require('./utils.class.cjs');
+
+
 class Client {
     constructor(account) {
         this.account = account || {};
-        this.proxy = this.account.proxy?.string ? new Proxy(parseProxy(this.account.proxy.string)) : {};
+        this.proxy = this.account.proxy ? new Proxy(parseProxy(this.account.proxy)) : {};
         this.client = this.proxy.string ? new SteamUser(this.proxy.getProxyInString()) : new SteamUser();
         this.community = this.proxy.string ? new SteamCommunity({ "request": this.proxy.getRequest() }) : new SteamCommunity();
         this.manager = new TradeOfferManager({
@@ -26,11 +29,11 @@ class Client {
             sessionID: null,
             cookies: null
         };
-        this.onLoginStatusChanged = () => { };
+        this.onLoginStatusChanged = ()=> {};
         this.loginStatus = "none";
-        
-
-
+    }
+    getAccount() {
+        return this.account;
     }
     setOnLoginStatusChanged(callback) {
         this.onLoginStatusChanged = callback;
@@ -40,114 +43,107 @@ class Client {
         return text;
     }
     setCookies(cookies) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve,reject) => {
             
             this.community.setCookies(cookies);
-            this.manager.setCookies(cookies, (err) => {
-                if (err) {
-                    if (err.eresult == EResult.AccessDenied) {
+            this.manager.setCookies(cookies, (err)=> {
+                if(err) {
+                    if(err.eresult === EResult.AccessDenied) {
                         this.loginStatus = "total";
                         
                         this.onLoginStatusChanged("total");
                     }
                     this.loginStatus = "error";
                     this.onLoginStatusChanged("error");
-                    new Logger(`(${this.getAccountName()}) {COOKIE ERROR} ${err.message}`, "log");
                     return reject(err);
                 }
                 
+                new Logger(`(${this.account.account_name}) Cookie setted`);
                 
-                
-                
+                this.setManagerNewOfferEvent();
                 this.loginStatus = "logged";
-                new Logger(`(${this.getAccountName()}) Cookies setted`, "log");
                 this.onLoginStatusChanged(this.loginStatus);
                 resolve();
             });
         })
-
+    }
+    setManagerNewOfferEvent() {
+        let addNewOffer = async(offer) => {
+            offer.partner.steamID64 = offer.partner.getSteamID64();
+            new Logger(`(${this.account.account_name}) New offer`, "log");
+            let newOffer = await this.getOfferByIdWithInfo(offer);
+            console.log(newOffer);
+            
+            electron.ipcMain.emit('new-offer', {account_name: this.getAccountName(),newOffer});
+        };
+        this.manager.on('newOffer', addNewOffer);
     }
     async login() {
-
-        let result;
+        if(!this.account.guard) return;
         this.loginStatus = "logging";
         this.onLoginStatusChanged("logging");
         
-        if (this.account.guard.Session) {
-            
-            new Logger(`(${this.getAccountName()}) Prepare to set cookie`, "log");
-            return await this.setCookies(this.getCookies());
+        if(this.account.guard.Session) {
+            new Logger(`(${this.getAccountName()}) Auth by session`, "log")
+            await this.setCookies(await this.getCookies());
+            return;
         }
         let login = this.account.account_name || await this.waitForInput('Write login:');
         let password = this.account.password || await this.waitForInput('Write password:');
-        
+        console.log("81", this.account);
+        new Logger(`(${this.getAccountName()}) Auth by login`, "log")
         try {
             this.session.on('authenticated', async () => {
                 let accessToken = this.session.accessToken;
                 let cookies = await this.session.getWebCookies();
-
-
-                
-                this.community.setCookies(cookies);
-                this.manager.setCookies(cookies, (err) => {
-                    if (err) {
-                        
-                        this.loginStatus = "error";
-                        this.onLoginStatusChanged("error");
-                        new Logger(`(${this.getAccountName()}) ${err.message}`, "error");
-                        return addNotify(`${this.getAccountName()}: ${err.message}`, "error");
-
-                    }
-                    
-                    this.onLoginStatusChanged("logged");
-                    this.loginStatus = "logged";
-                    new Logger(`(${this.getAccountName()}) Success login`, "log");
-                    addNotify(`${this.getAccountName()}: Success login`, "success");
-                });
-
+               
+               
+                this.saveSession(this.account.maFileName, cookies);
                 this.community.setMobileAppAccessToken(accessToken);
 
+                return await this.setCookies(await this.getCookies());
+                
+                
             });
             this.session.on('timeout', () => {
                 
                 this.loginStatus = "error";
                 this.onLoginStatusChanged("error");
-                new Logger(`(${this.getAccountName()}) This login attempt has timed out.`, "log");
+                new Logger(`(${this.getAccountName()}) {LOGIN} This login attempt has timed out.`, "error");
                 addNotify(`${this.getAccountName()}: This login attempt has timed out.`, "info");
             });
             this.session.on('error', (err) => {
                 
                 this.loginStatus = "error";
                 this.onLoginStatusChanged("error");
-                new Logger(`(${this.getAccountName()}) ${err.message}`, "error");
+                new Logger(`(${this.getAccountName()}) {LOGIN} ${err.message}`, "error");
                 addNotify(`${this.getAccountName()}: ${err.message}`, "error");
             });
-            let startResult = await this.session.startWithCredentials({ accountName: login, password: password, steamGuardCode: this.getGuardCode() });
+            let startResult = await this.session.startWithCredentials({accountName: login, password: password, steamGuardCode: this.getGuardCode()});
             if (startResult.actionRequired) {
-
+        
                 let codeActionTypes = [SteamSession.EAuthSessionGuardType.EmailCode, SteamSession.EAuthSessionGuardType.DeviceCode];
                 let codeAction = startResult.validActions.find(action => codeActionTypes.includes(action.type));
+                let text;
                 if (codeAction) {
-                    if (codeAction.type == SteamSession.EAuthSessionGuardType.EmailCode) {
-                        
-                        new Logger(`(${this.getAccountName()}) {CODEACTION} A code has been sent to your email address at ${codeAction.detail}.`, "log")
+                    if (codeAction.type === SteamSession.EAuthSessionGuardType.EmailCode) {
+                        text = `A code has been sent to your email address at ${codeAction.detail}.`;;
                     } else {
-
-                        new Logger(`(${this.getAccountName()}) {CODEACTION} You need to provide a Steam Guard Mobile Authenticator code.`, "log")
+                       
+                       text = 'You need to provide a Steam Guard Mobile Authenticator code.';
                     }
                 }
-                let code = this.getGuardCode() || await this.waitForInput("Enter a Steam Guard Mobile Authenticator code: ");
+                let code = this.getGuardCode() || await this.waitForInput(text);
                 if (code) {
                     await this.session.submitSteamGuardCode(code);
                 }
             }
-        } catch (e) {
-            await timer(2000);
+        } catch(e) {
+            console.log(e);
             this.loginStatus = "error";
             this.onLoginStatusChanged("error");
             
-            new Logger(`(${this.getAccountName()}) {LOGIN ATTEMPT} ${e.message}`, "error");
-            addNotify(`${this.getAccountName()}: ${e.message}`, "error");
+            new Logger(`(${this.getAccountName()}) {LOGIN} ${e.message}`, "error");
         }
     }
     replaceFields(source, target) {
@@ -168,37 +164,81 @@ class Client {
     getOAuthToken() {
         return this.account.guard.Session.OAuthToken;
     }
-    getCookies() {
-        let session = this.account.guard.Session;
-        if (!session) return [];
-        let cookies = Object.keys(session).map(key => {
-            if (key == "SteamID") return;
-            if (key == "") return;
-            
+    isTokenExpired(token) {
+        if(!token) return false;
+        const tokenComponents = token.split('.');
+        let base64 = tokenComponents[1].replace('-', '+').replace('_', '/');
 
-            if (key == "SessionID" && session[key] == null) session[key] = this.getSessionId();
+        if (base64.length % 4 !== 0) base64 += '='.repeat(4 - base64.length % 4);
+        const data = atob(base64);
+        const array = JSON.parse(data);
+        
+        return Math.floor(Date.now() / 1000) > array.exp;
+    }
+    getAccessToken() {
+        return this.account.guard?.Session?.AccessToken ? this.account.guard.Session.AccessToken : "";
+    }
+    getRefreshToken() {
+        return this.account.guard?.Session?.RefreshToken ? this.account.guard.Session.RefreshToken : "";
+    }
+    isAccessTokenExpired() {
+        return this.isTokenExpired(this.getAccessToken());
+    }
+    isRefreshTokenExpired() {
+        return this.isTokenExpired(this.getRefreshToken());
+    }
+    async updateAccessToken() {
+        if(!this.isAccessTokenExpired() || !this.getRefreshToken()) return;
+        if(this.isRefreshTokenExpired()) this.account.guard.Session = undefined;
+        let session = new SteamSession.LoginSession(SteamSession.EAuthTokenPlatformType.WebBrowser);
+        session.refreshToken = this.getRefreshToken();
+        await session.refreshAccessToken();
+        
+        this.account.guard.Session.AccessToken = session.accessToken;
+        saveAccount(this, {update: true});
+        return session.accessToken;
+    }
+    async getCookies() {
+        if(!this.account.guard.Session) return [];
+        
+        await this.updateAccessToken();
+        
+        let session = this.account.guard.Session;
+        if(session.AccessToken && session.SteamID) {
+            if(!session.SessionID) {
+                session.SessionID = this.getSessionId();
+                saveAccount(this.account, {update: true});
+            }
+           
+            return [`sessionID=${session.SessionID}`,`steamLoginSecure=${session.SteamID}%7C%7C${session.AccessToken}`];
+        }
+        let cookies = Object.keys(session).map(key=> {
+            if(key === "SteamID") return undefined;
+            if(key === "") return undefined;
+
+            if(key === "SessionID" && session[key] === null) session[key] = this.getSessionId();
             return `${key.charAt(0).toLowerCase() + key.slice(1)}=${session[key]}`
-        }).filter(x => !!x);
+        }).filter(x=> !!x);
         
         return cookies;
     }
     saveSession(fileName, cookies) {
-        if (!fileName) {
+        if(!fileName) {
             let mf = getMaFiles();
-            fileName = mf.find(x => x.account_name == this.account.account_name).maFileName;
+            fileName = mf.find(x=> x.account_name === this.account.account_name ).maFileName;
         }
-        let maFile = fs.readFileSync('./maFiles' + '/' + fileName, 'utf8');
+        let maFile = fs.readFileSync(`./maFiles/${fileName}`, 'utf8');
         maFile = JSON.parse(maFile);
         maFile.Session = {};
         maFile.Session.SteamID = this.community.steamID.getSteamID64();
-        cookies.forEach(cookie => {
+        cookies.forEach(cookie=> {
             let key = cookie.split('=')[0];
             let value = cookie.split('=')[1];
             key = key.charAt(0).toUpperCase() + key.slice(1);
             maFile.Session[key] = value;
         });
-        new Logger(`(${this.getAccountName()}) Session saved`, "log");
-        fs.writeFileSync('maFiles' + '/' + fileName, JSON.stringify(maFile));
+        
+        fs.writeFileSync(`maFiles/${fileName}`, JSON.stringify(maFile));
         this.account.guard.Session = maFile.Session;
     }
     stringify() {
@@ -248,7 +288,7 @@ class Client {
                 let promises = received.map(async tradeOffer => {
                     return await new Promise(resolve => tradeOffer.getUserDetails((err, me, them) => {
                         if (err) return resolve({ error: err });
-
+                        tradeOffer.partner.steamID64 = tradeOffer.partner.getSteamID64();
                         resolve({
                             id: tradeOffer.id,
                             title: 'TF - ',
@@ -307,7 +347,8 @@ class Client {
                             new Logger(`(${this.getAccountName()}) Trade offer ${offer.id}: ${status}`, "log");
                         }
                         if (status === "pending") {
-                            this.community.acceptConfirmationForObject(this.account.guard.identity_secret, offer.id, function (err) {
+        
+                            this.community.acceptConfirmationForObject(this.account.guard.identity_secret, offer.id, (err) => {
                                 if (err) {
                                     
                                     new Logger(`(${this.getAccountName()}) Unable to accept offer: ${err.message}`, "error");
@@ -330,6 +371,9 @@ class Client {
     }
     getAccountName() {
         return this.account.account_name;
+    }
+    getDisplayName() {
+        return this.account.display_name;
     }
     onWebSession(_this, sessionID, cookies) {
         _this.details = { sessionID, cookies };
@@ -382,6 +426,7 @@ class Client {
                 else {
                     new Logger(`(${this.getAccountName()}) Info about trade (${offer.id}) loaded`, "log");
                 }
+                offer.partner.steamID64 = offer.partner.getSteamID64();
                 resolve(offer);
             });
         });
@@ -399,7 +444,7 @@ class Client {
                     resolve({ error: err });
                 }
                 else {
-                    new Logger(`(${this.getAccountName()}) {CONFIRMATIONS} loaded`, "log");
+                    new Logger(`(${this.getAccountName()}) {CONFIRMATIONS} checked`, "log");
                     resolve(confirmations || []);
                 }
             })

@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import Client from '../steamUtils/client.class';
 const {ipcRenderer} = window.require('electron');
 const SteamSession = window.require('steam-session');
 const SteamCommunity = window.require('steamcommunity');
 const SteamTotp = window.require('steam-totp');
 const FS = window.require('fs');
 
-export default function AddGuard({activeAccount}) {
+export default function AddGuard() {
     let [login, setLogin] = useState("");
     let [password, setPassword] = useState("");
 

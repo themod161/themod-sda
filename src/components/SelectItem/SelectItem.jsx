@@ -6,7 +6,7 @@ import DoneIcon from '@mui/icons-material/Done';
 const SelectItem = (props) => {
     let {title, onComplete, value, ...inputProps} = props;
     const [isInput, setIsInput] = useState(props.disabled ? true : false);
-    if(value && value.toLowerCase() == 'socks') value = 'http';
+    //if(value && value.toLowerCase() == 'socks') value = 'http';
     const handleOnClickSave = (e) => {
         if(props.disabled) return;
         setIsInput(false);
@@ -30,6 +30,7 @@ const SelectItem = (props) => {
                         <select value={value?.toLowerCase() || "http"} {...inputProps}>
                             <option value="http">HTTP</option>
                             <option value="https">HTTPS</option>
+                            <option value="socks">SOCKS</option>
                         </select>
                         <div className='text-input-save-button' onClick={handleOnClickSave}>
                             <DoneIcon/>
